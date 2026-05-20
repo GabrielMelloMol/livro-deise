@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Deise em... Tudo aqui já foi um sonho!</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+</head>
+<body>
+  <div id="app">
+    <div id="flipbook-container">
+      <div id="flipbook"></div>
+    </div>
+
+    <div id="controls">
+      <button id="btn-prev" aria-label="Página anterior">&#8592;</button>
+      <span id="page-indicator"></span>
+      <button id="btn-next" aria-label="Próxima página">&#8594;</button>
+    </div>
+
+    <!-- Overlay de vídeo Libras -->
+    <div id="overlay-libras" class="overlay hidden" role="dialog" aria-label="Vídeo em Libras">
+      <div class="overlay-content">
+        <button class="overlay-close" aria-label="Fechar">&#10005;</button>
+        <video id="video-libras" controls playsinline></video>
+      </div>
+    </div>
+
+    <!-- Overlay de áudio -->
+    <div id="overlay-audio" class="overlay-audio hidden">
+      <button id="btn-audio-close" aria-label="Parar narração">&#10005;</button>
+      <span>&#9654; Narrando...</span>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
+  <script type="module" src="js/flipbook.js"></script>
+</body>
+</html>
