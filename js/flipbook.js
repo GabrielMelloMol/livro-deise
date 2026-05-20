@@ -1,90 +1,153 @@
 // js/flipbook.js
-import { PAGES, SITE_URL } from './config.js';
+import { PAGES, SITE_URL, VERSION } from './config.js';
 import './stars.js';
 
-const flipbook        = document.getElementById('flipbook');
+// ----- DOM refs -----
+const flipbook          = document.getElementById('flipbook');
 const flipbookContainer = document.getElementById('flipbook-container');
-const btnPrev         = document.getElementById('btn-prev');
-const btnNext         = document.getElementById('btn-next');
-const pageIndicator   = document.getElementById('page-indicator');
-const btnZoomIn       = document.getElementById('btn-zoom-in');
-const btnZoomOut      = document.getElementById('btn-zoom-out');
-const zoomIndicator   = document.getElementById('zoom-indicator');
+const btnPrev           = document.getElementById('btn-prev');
+const btnNext           = document.getElementById('btn-next');
+const pageIndicator     = document.getElementById('page-indicator');
+const btnZoomIn         = document.getElementById('btn-zoom-in');
+const btnZoomOut        = document.getElementById('btn-zoom-out');
+const zoomIndicator     = document.getElementById('zoom-indicator');
+const btnFullscreen     = document.getElementById('btn-fullscreen');
+const btnWhatsapp       = document.getElementById('btn-whatsapp');
 
-// --- Zoom ---
-let zoomLevel = 1;
-const ZOOM_MIN = 0.5;
-const ZOOM_MAX = 3;
+// ----- Versão -----
+const versionEl = document.getElementById('app-version');
+if (versionEl) versionEl.textContent = `v${VERSION}`;
+
+// ----- WhatsApp -----
+if (btnWhatsapp) {
+  const txt = encodeURIComponent(`Olha esse livro incrível! 📖✨\n${SITE_URL}`);
+  btnWhatsapp.href = `https://wa.me/?text=${txt}`;
+}
+
+// ----- Tela cheia -----
+if (btnFullscreen) {
+  btnFullscreen.addEventListener('click', () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  });
+  document.addEventListener('fullscreenchange', () => {
+    btnFullscreen.setAttribute('aria-label', document.fullscreenElement ? 'Sair da tela cheia' : 'Tela cheia');
+    btnFullscreen.title = document.fullscreenElement ? 'Sair da tela cheia' : 'Tela cheia';
+  });
+}
+
+// ----- Zoom — sem transition no scroll, suave nos botões -----
+let zoomLevel   = 1;
+const ZOOM_MIN  = 0.5;
+const ZOOM_MAX  = 3;
 const ZOOM_STEP = 0.25;
-
-// Wrapper aplicado no container para não interferir no StPageFlip
 let zoomWrapper = null;
+let zoomTransTimer = null;
 
 function applyZoom() {
   if (zoomWrapper) zoomWrapper.style.transform = `scale(${zoomLevel})`;
   zoomIndicator.textContent = `${Math.round(zoomLevel * 100)}%`;
 }
 
-function setZoom(delta) {
+function setZoom(delta, smooth = false) {
   zoomLevel = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomLevel + delta));
+  if (zoomWrapper) {
+    zoomWrapper.style.transition = smooth ? 'transform 0.12s ease' : 'none';
+    if (smooth) {
+      clearTimeout(zoomTransTimer);
+      zoomTransTimer = setTimeout(() => {
+        if (zoomWrapper) zoomWrapper.style.transition = 'none';
+      }, 200);
+    }
+  }
   applyZoom();
 }
 
-function resetZoom() { zoomLevel = 1; applyZoom(); }
+function resetZoom() {
+  if (zoomWrapper) zoomWrapper.style.transition = 'transform 0.2s ease';
+  zoomLevel = 1;
+  applyZoom();
+  setTimeout(() => { if (zoomWrapper) zoomWrapper.style.transition = 'none'; }, 300);
+}
 
-btnZoomIn.addEventListener('click',  () => setZoom(+ZOOM_STEP));
-btnZoomOut.addEventListener('click', () => setZoom(-ZOOM_STEP));
+btnZoomIn.addEventListener('click',  () => setZoom(+ZOOM_STEP, true));
+btnZoomOut.addEventListener('click', () => setZoom(-ZOOM_STEP, true));
 
-// Scroll → zoom
 flipbookContainer.addEventListener('wheel', e => {
-  if (e.ctrlKey || e.metaKey || Math.abs(e.deltaY) > 0) {
-    e.preventDefault();
-    setZoom(e.deltaY < 0 ? +ZOOM_STEP : -ZOOM_STEP);
-  }
+  e.preventDefault();
+  setZoom(e.deltaY < 0 ? +ZOOM_STEP : -ZOOM_STEP, false); // instantâneo
 }, { passive: false });
 
-// Pinch to zoom (mobile)
-let lastPinchDist = null;
+flipbookContainer.addEventListener('dblclick', resetZoom);
+
+// ----- Touch: pinch (zoom) + swipe (virar página) — num único handler -----
+const touch = { startX: null, startY: null, pinchDist: null };
+
 flipbookContainer.addEventListener('touchstart', e => {
-  if (e.touches.length === 2) lastPinchDist = Math.hypot(
-    e.touches[0].clientX - e.touches[1].clientX,
-    e.touches[0].clientY - e.touches[1].clientY
-  );
+  if (e.touches.length === 2) {
+    touch.pinchDist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    touch.startX = null; // cancela tracking de swipe
+  } else if (e.touches.length === 1) {
+    touch.startX   = e.touches[0].clientX;
+    touch.startY   = e.touches[0].clientY;
+    touch.pinchDist = null;
+  }
 }, { passive: true });
+
 flipbookContainer.addEventListener('touchmove', e => {
-  if (e.touches.length === 2 && lastPinchDist) {
+  if (e.touches.length === 2 && touch.pinchDist !== null) {
+    e.preventDefault();
     const dist = Math.hypot(
       e.touches[0].clientX - e.touches[1].clientX,
       e.touches[0].clientY - e.touches[1].clientY
     );
-    const delta = (dist - lastPinchDist) / 200;
-    setZoom(delta);
-    lastPinchDist = dist;
+    setZoom((dist - touch.pinchDist) / 180, false);
+    touch.pinchDist = dist;
+  }
+}, { passive: false });
+
+flipbookContainer.addEventListener('touchend', e => {
+  if (e.touches.length === 0) {
+    // todos os dedos levantados
+    if (touch.startX !== null && touch.pinchDist === null) {
+      const dx = e.changedTouches[0].clientX - touch.startX;
+      const dy = e.changedTouches[0].clientY - touch.startY;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        if (dx < 0) { playPageTurn(); pageFlip.flipNext(); }
+        else         { playPageTurn(); pageFlip.flipPrev(); }
+      }
+    }
+    touch.startX = touch.startY = touch.pinchDist = null;
+  } else if (e.touches.length === 1) {
+    // saiu do pinch — não vira página
+    touch.pinchDist = null;
+    touch.startX    = null;
   }
 }, { passive: true });
-flipbookContainer.addEventListener('touchend', () => { lastPinchDist = null; }, { passive: true });
 
-// Duplo clique → reset zoom
-flipbookContainer.addEventListener('dblclick', resetZoom);
-
-// Dimensões responsivas
+// ----- Dimensões responsivas -----
 function getBookSize() {
-  const maxH = window.innerHeight - 120;
+  const maxH = window.innerHeight - 130;
   const maxW = window.innerWidth - 40;
   const pageH = Math.min(maxH, 600);
   const pageW = Math.min(maxW / 2, 420);
   return { width: pageW * 2, height: pageH };
 }
 
-// Para cada botão: bloqueia propagação em todos os eventos de ponteiro
-// para evitar que o StPageFlip inicie a animação de virar página ao clicar nos ícones
+// ----- Botões de página: bloqueiam eventos antes que o StPageFlip os registre -----
 function blockFlip(btn) {
   ['pointerdown', 'touchstart', 'mousedown'].forEach(evt => {
     btn.addEventListener(evt, e => e.stopPropagation(), { passive: false });
   });
 }
 
-// Criar elementos <div> de página para o StPageFlip
+// ----- Construir páginas -----
 function buildPages() {
   PAGES.forEach(p => {
     const div = document.createElement('div');
@@ -92,12 +155,11 @@ function buildPages() {
     div.dataset.pageId = p.id;
 
     const img = document.createElement('img');
-    img.src = p.image;
-    img.alt = `Página ${p.id} do livro`;
-    img.loading = 'lazy';
+    img.src     = p.image;
+    img.alt     = `Página ${p.id} do livro`;
+    img.loading = p.id <= 4 ? 'eager' : 'lazy';
     div.appendChild(img);
 
-    // Ícone Libras
     if (p.libras) {
       const btn = document.createElement('button');
       btn.className = 'page-icon icon-libras';
@@ -109,7 +171,6 @@ function buildPages() {
       div.appendChild(btn);
     }
 
-    // Ícone Áudio
     if (p.audio) {
       const btn = document.createElement('button');
       btn.className = 'page-icon icon-audio';
@@ -121,7 +182,6 @@ function buildPages() {
       div.appendChild(btn);
     }
 
-    // Ícone RA
     if (p.arScene) {
       const btn = document.createElement('button');
       btn.className = 'page-icon icon-ar';
@@ -140,129 +200,123 @@ function buildPages() {
   });
 }
 
-// Inicializar StPageFlip
+// ----- localStorage: última página visitada -----
+const LS_KEY = 'livro-deise-page';
+function savePage(idx) {
+  try { localStorage.setItem(LS_KEY, idx); } catch (_) {}
+}
+function loadSavedPage() {
+  try { return Math.max(0, parseInt(localStorage.getItem(LS_KEY), 10) || 0); } catch (_) { return 0; }
+}
+
+// ----- StPageFlip -----
 let pageFlip;
 
 function initFlipbook() {
   const { width, height } = getBookSize();
   buildPages();
 
-  // Criar wrapper de zoom ao redor do flipbook
   if (!zoomWrapper) {
     zoomWrapper = document.createElement('div');
     zoomWrapper.id = 'zoom-wrapper';
+    zoomWrapper.style.transition = 'none';
     flipbookContainer.appendChild(zoomWrapper);
     zoomWrapper.appendChild(flipbook);
   }
   applyZoom();
 
   pageFlip = new St.PageFlip(flipbook, {
-    width: width / 2,
-    height: height,
-    size: 'fixed',
-    minWidth: 150,
-    maxWidth: 420,
-    minHeight: 300,
-    maxHeight: 600,
-    showCover: true,
+    width:    width / 2,
+    height,
+    size:     'fixed',
+    minWidth: 150,  maxWidth: 420,
+    minHeight: 300, maxHeight: 600,
+    showCover:           true,
     mobileScrollSupport: false,
-    swipeDistance: 80,       // era 30 — reduzia falsos positivos de clique
-    startUserInteraction: 30, // pixels mínimos para iniciar fold visual
-    usePortrait: window.innerWidth < 700,
+    // swipeDistance muito alto = desabilita drag/fold do StPageFlip
+    // usamos swipe customizado acima para não ter o bug do fold na frente dos botões
+    swipeDistance:  9999,
+    drawShadow:     false,
+    usePortrait:    window.innerWidth < 700,
   });
 
   initPageTurnSound();
-
   pageFlip.loadFromHTML(document.querySelectorAll('.page'));
 
+  const savedPage = loadSavedPage();
+  if (savedPage > 0) requestAnimationFrame(() => pageFlip.turnToPage(savedPage));
+
   pageFlip.on('flip', e => {
-    pageIndicator.textContent = `${e.data + 1} / ${PAGES.length}`;
+    const idx = e.data;
+    pageIndicator.textContent = `${idx + 1} / ${PAGES.length}`;
+    savePage(idx);
     closeOverlays();
   });
 
-  // Som dispara no evento changeState (início do fold visual), não no flip (fim)
-  pageFlip.on('changeState', ({ data }) => {
-    if (data === 'flipping') playPageTurn();
-  });
+  pageIndicator.textContent = `${savedPage + 1} / ${PAGES.length}`;
 
-  pageIndicator.textContent = `1 / ${PAGES.length}`;
+  hideLoading();
 }
 
-// --- Som de virada de página ---
-// Para som realista coloque um arquivo em assets/sounds/page-turn.mp3
-// O código usa Howler se o arquivo existir, Web Audio como fallback.
-let audioCtx = null;
-let pageTurnSound = null;
+// ----- Som de virada de página -----
+// Coloque assets/sounds/page-turn.mp3 para som real. Enquanto isso: síntese.
+let audioCtx     = null;
+let pageTurnSnd  = null;
 
 function initPageTurnSound() {
-  if (pageTurnSound) return;
-  const src = 'assets/sounds/page-turn.mp3';
-  pageTurnSound = new Howl({
-    src: [src],
-    volume: 0.25,
+  if (pageTurnSnd) return;
+  pageTurnSnd = new Howl({
+    src: ['assets/sounds/page-turn.mp3'],
+    volume: 0.3,
     preload: true,
-    onloaderror: () => { pageTurnSound = null; }, // fallback para síntese
+    onloaderror: () => { pageTurnSnd = null; },
   });
 }
 
 function playPageTurn() {
   try {
-    if (pageTurnSound && pageTurnSound.state() === 'loaded') {
-      pageTurnSound.play();
-      return;
-    }
-    // Fallback: síntese em camadas (rustle + thump)
+    if (pageTurnSnd && pageTurnSnd.state() === 'loaded') { pageTurnSnd.play(); return; }
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
     const now = audioCtx.currentTime;
-
-    // Camada 1: rustle (papel deslizando)
     const sr  = audioCtx.sampleRate;
-    const buf1 = audioCtx.createBuffer(1, sr * 0.32, sr);
-    const d1   = buf1.getChannelData(0);
+
+    // Rustle: highpass noise, ataque rápido, decaimento exponencial
+    const b1 = audioCtx.createBuffer(1, sr * 0.32, sr);
+    const d1  = b1.getChannelData(0);
     for (let i = 0; i < d1.length; i++) {
       const t = i / sr;
-      // Sino assimétrico: ataque em 25ms, decaimento exponencial
-      const env = t < 0.025 ? t / 0.025 : Math.exp(-(t - 0.025) * 14);
-      d1[i] = (Math.random() * 2 - 1) * env;
+      d1[i] = (Math.random() * 2 - 1) * (t < 0.025 ? t / 0.025 : Math.exp(-(t - 0.025) * 14));
     }
-    const s1 = audioCtx.createBufferSource();
-    s1.buffer = buf1;
-    const hpf = audioCtx.createBiquadFilter();
-    hpf.type = 'highpass'; hpf.frequency.value = 2800;
+    const s1 = audioCtx.createBufferSource(); s1.buffer = b1;
+    const hpf = audioCtx.createBiquadFilter(); hpf.type = 'highpass'; hpf.frequency.value = 2800;
     const g1 = audioCtx.createGain(); g1.gain.value = 0.13;
-    s1.connect(hpf).connect(g1).connect(audioCtx.destination);
-    s1.start(now);
+    s1.connect(hpf).connect(g1).connect(audioCtx.destination); s1.start(now);
 
-    // Camada 2: thump suave (página pousando)
-    const buf2 = audioCtx.createBuffer(1, sr * 0.08, sr);
-    const d2   = buf2.getChannelData(0);
+    // Thump: lowpass no final (página pousando)
+    const b2 = audioCtx.createBuffer(1, sr * 0.08, sr);
+    const d2  = b2.getChannelData(0);
     for (let i = 0; i < d2.length; i++) {
-      const t = i / sr;
-      d2[i] = (Math.random() * 2 - 1) * Math.exp(-t * 60);
+      d2[i] = (Math.random() * 2 - 1) * Math.exp(-(i / sr) * 60);
     }
-    const s2 = audioCtx.createBufferSource();
-    s2.buffer = buf2;
-    const lpf = audioCtx.createBiquadFilter();
-    lpf.type = 'lowpass'; lpf.frequency.value = 400;
+    const s2 = audioCtx.createBufferSource(); s2.buffer = b2;
+    const lpf = audioCtx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 400;
     const g2 = audioCtx.createGain(); g2.gain.value = 0.10;
-    s2.connect(lpf).connect(g2).connect(audioCtx.destination);
-    s2.start(now + 0.22); // thump no final do rustle
-  } catch (_) { /* silencia se o navegador bloquear */ }
+    s2.connect(lpf).connect(g2).connect(audioCtx.destination); s2.start(now + 0.22);
+  } catch (_) {}
 }
 
-// Controles
+// ----- Controles -----
 btnPrev.addEventListener('click', () => { playPageTurn(); pageFlip.flipPrev(); });
 btnNext.addEventListener('click', () => { playPageTurn(); pageFlip.flipNext(); });
 
-// Teclado
 document.addEventListener('keydown', e => {
   if (e.key === 'ArrowLeft')  { playPageTurn(); pageFlip.flipPrev(); }
   if (e.key === 'ArrowRight') { playPageTurn(); pageFlip.flipNext(); }
   if (e.key === 'Escape')     closeOverlays();
 });
 
-// Libras overlay
+// ----- Overlay Libras -----
 const overlayLibras = document.getElementById('overlay-libras');
 const videoLibras   = document.getElementById('video-libras');
 overlayLibras.querySelector('.overlay-close').addEventListener('click', closeLibras);
@@ -274,12 +328,11 @@ function openLibras(src) {
   videoLibras.play();
 }
 function closeLibras() {
-  videoLibras.pause();
-  videoLibras.src = '';
+  videoLibras.pause(); videoLibras.src = '';
   overlayLibras.classList.add('hidden');
 }
 
-// Áudio (Howler)
+// ----- Overlay Áudio -----
 let currentSound = null;
 const overlayAudio = document.getElementById('overlay-audio');
 document.getElementById('btn-audio-close').addEventListener('click', stopAudio);
@@ -287,10 +340,9 @@ document.getElementById('btn-audio-close').addEventListener('click', stopAudio);
 function playAudio(src) {
   stopAudio();
   currentSound = new Howl({
-    src: [src],
-    html5: true,
-    onend: () => { overlayAudio.classList.add('hidden'); currentSound = null; },
-    onerror: () => { overlayAudio.classList.add('hidden'); },
+    src: [src], html5: true,
+    onend:   () => { overlayAudio.classList.add('hidden'); currentSound = null; },
+    onerror: () => {  overlayAudio.classList.add('hidden'); },
   });
   currentSound.play();
   overlayAudio.classList.remove('hidden');
@@ -299,13 +351,21 @@ function stopAudio() {
   if (currentSound) { currentSound.stop(); currentSound = null; }
   overlayAudio.classList.add('hidden');
 }
+function closeOverlays() { closeLibras(); stopAudio(); }
 
-function closeOverlays() {
-  closeLibras();
-  stopAudio();
+// ----- Loading screen -----
+function hideLoading() {
+  const overlay = document.getElementById('loading-overlay');
+  const app     = document.getElementById('app');
+  if (!overlay) return;
+  setTimeout(() => {
+    overlay.classList.add('done');
+    if (app) app.classList.add('ready');
+    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 800);
+  }, 500);
 }
 
-// Responsividade (debounced)
+// ----- Responsividade (debounced) -----
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
@@ -313,7 +373,7 @@ window.addEventListener('resize', () => {
     if (pageFlip) pageFlip.destroy();
     flipbook.innerHTML = '';
     initFlipbook();
-  }, 200);
+  }, 250);
 });
 
 initFlipbook();
