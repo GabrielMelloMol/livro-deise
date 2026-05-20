@@ -1,0 +1,12 @@
+# Assets pesados — não commitar
+assets/libras/*.mp4
+assets/pages/*.jpg
+assets/pages/*.webp
+
+# Python
+__pycache__/
+*.pyc
+.env
+
+# OS
+.DS_Store
