@@ -1,5 +1,6 @@
 // js/flipbook.js
 import { PAGES, SITE_URL } from './config.js';
+import './stars.js';
 
 const flipbook        = document.getElementById('flipbook');
 const flipbookContainer = document.getElementById('flipbook-container');
@@ -75,6 +76,14 @@ function getBookSize() {
   return { width: pageW * 2, height: pageH };
 }
 
+// Para cada botão: bloqueia propagação em todos os eventos de ponteiro
+// para evitar que o StPageFlip inicie a animação de virar página ao clicar nos ícones
+function blockFlip(btn) {
+  ['pointerdown', 'touchstart', 'mousedown'].forEach(evt => {
+    btn.addEventListener(evt, e => e.stopPropagation(), { passive: false });
+  });
+}
+
 // Criar elementos <div> de página para o StPageFlip
 function buildPages() {
   PAGES.forEach(p => {
@@ -95,6 +104,7 @@ function buildPages() {
       btn.title = 'Ver em Libras';
       btn.setAttribute('aria-label', 'Abrir vídeo em Libras');
       btn.innerHTML = '&#128075;';
+      blockFlip(btn);
       btn.addEventListener('click', e => { e.stopPropagation(); openLibras(p.libras); });
       div.appendChild(btn);
     }
@@ -106,6 +116,7 @@ function buildPages() {
       btn.title = 'Ouvir narração';
       btn.setAttribute('aria-label', 'Ouvir narração desta página');
       btn.innerHTML = '&#128266;';
+      blockFlip(btn);
       btn.addEventListener('click', e => { e.stopPropagation(); playAudio(p.audio); });
       div.appendChild(btn);
     }
@@ -117,6 +128,7 @@ function buildPages() {
       btn.title = 'Experiência de Realidade Aumentada';
       btn.setAttribute('aria-label', 'Abrir Realidade Aumentada');
       btn.innerHTML = '&#x1F4F1;';
+      blockFlip(btn);
       btn.addEventListener('click', e => {
         e.stopPropagation();
         window.open(`${SITE_URL}/ar/?cena=${p.arScene}`, '_blank');
@@ -163,9 +175,47 @@ function initFlipbook() {
   pageFlip.on('flip', e => {
     pageIndicator.textContent = `${e.data + 1} / ${PAGES.length}`;
     closeOverlays();
+    playPageTurn();
   });
 
   pageIndicator.textContent = `1 / ${PAGES.length}`;
+}
+
+// --- Som de virada de página (Web Audio API, sem arquivo externo) ---
+let audioCtx = null;
+
+function playPageTurn() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const dur    = 0.28;
+    const sr     = audioCtx.sampleRate;
+    const buf    = audioCtx.createBuffer(1, sr * dur, sr);
+    const data   = buf.getChannelData(0);
+
+    // Ruído filtrado com envelope de decaimento — simula o sussurro do papel
+    for (let i = 0; i < data.length; i++) {
+      const t = i / sr;
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 20) * 0.9;
+    }
+
+    const src    = audioCtx.createBufferSource();
+    src.buffer   = buf;
+
+    const bpf    = audioCtx.createBiquadFilter();
+    bpf.type     = 'bandpass';
+    bpf.frequency.value = 1600;
+    bpf.Q.value  = 0.45;
+
+    const gain   = audioCtx.createGain();
+    gain.gain.value = 0.11; // bem de leve
+
+    src.connect(bpf);
+    bpf.connect(gain);
+    gain.connect(audioCtx.destination);
+    src.start();
+  } catch (_) { /* silencia se o navegador bloquear */ }
 }
 
 // Controles

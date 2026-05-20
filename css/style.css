@@ -1,7 +1,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: #1a1a2e;
+  background: radial-gradient(ellipse at 50% 110%, #0d1b3e 0%, #080820 55%, #040410 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,6 +11,8 @@ body {
 }
 
 #app {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -83,7 +85,7 @@ body {
 #zoom-controls button:hover { background: rgba(255,255,255,0.25); }
 #zoom-indicator { font-size: 0.75rem; opacity: 0.6; min-width: 38px; text-align: center; }
 
-/* Ícones nas páginas */
+/* Ícones nas páginas — posicionados no TOPO para não conflitar com zona de virar página */
 .page-icon {
   position: absolute;
   width: 40px;
@@ -94,14 +96,15 @@ body {
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  z-index: 20;
   transition: transform 0.2s;
+  touch-action: none;
 }
-.page-icon:hover { transform: scale(1.1); }
-.icon-libras  { background: #0077b6; color: #fff; bottom: 60px; right: 10px; }
-.icon-audio   { background: #f77f00; color: #fff; bottom: 10px;  right: 10px; }
-.icon-ar      { background: #7b2d8b; color: #fff; bottom: 110px; right: 10px; }
+.page-icon:hover { transform: scale(1.15); }
+.icon-libras  { background: #0077b6; color: #fff; top: 10px;  right: 10px; }
+.icon-audio   { background: #f77f00; color: #fff; top: 58px;  right: 10px; }
+.icon-ar      { background: #7b2d8b; color: #fff; top: 106px; right: 10px; }
 
 /* Overlays */
 .overlay {
@@ -168,8 +171,10 @@ body {
 .page img {
   width: 100%;
   height: 100%;
-  object-fit: contain;  /* contain = mostra a página inteira sem cortar */
+  object-fit: contain;
   display: block;
+  image-rendering: high-quality;
+  image-rendering: -webkit-optimize-contrast; /* Safari */
 }
 
 @media (max-width: 600px) {
