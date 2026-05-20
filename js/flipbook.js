@@ -166,66 +166,99 @@ function initFlipbook() {
     maxHeight: 600,
     showCover: true,
     mobileScrollSupport: false,
-    swipeDistance: 30,
+    swipeDistance: 80,       // era 30 — reduzia falsos positivos de clique
+    startUserInteraction: 30, // pixels mínimos para iniciar fold visual
     usePortrait: window.innerWidth < 700,
   });
+
+  initPageTurnSound();
 
   pageFlip.loadFromHTML(document.querySelectorAll('.page'));
 
   pageFlip.on('flip', e => {
     pageIndicator.textContent = `${e.data + 1} / ${PAGES.length}`;
     closeOverlays();
-    playPageTurn();
+  });
+
+  // Som dispara no evento changeState (início do fold visual), não no flip (fim)
+  pageFlip.on('changeState', ({ data }) => {
+    if (data === 'flipping') playPageTurn();
   });
 
   pageIndicator.textContent = `1 / ${PAGES.length}`;
 }
 
-// --- Som de virada de página (Web Audio API, sem arquivo externo) ---
+// --- Som de virada de página ---
+// Para som realista coloque um arquivo em assets/sounds/page-turn.mp3
+// O código usa Howler se o arquivo existir, Web Audio como fallback.
 let audioCtx = null;
+let pageTurnSound = null;
+
+function initPageTurnSound() {
+  if (pageTurnSound) return;
+  const src = 'assets/sounds/page-turn.mp3';
+  pageTurnSound = new Howl({
+    src: [src],
+    volume: 0.25,
+    preload: true,
+    onloaderror: () => { pageTurnSound = null; }, // fallback para síntese
+  });
+}
 
 function playPageTurn() {
   try {
+    if (pageTurnSound && pageTurnSound.state() === 'loaded') {
+      pageTurnSound.play();
+      return;
+    }
+    // Fallback: síntese em camadas (rustle + thump)
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     if (audioCtx.state === 'suspended') audioCtx.resume();
+    const now = audioCtx.currentTime;
 
-    const dur    = 0.28;
-    const sr     = audioCtx.sampleRate;
-    const buf    = audioCtx.createBuffer(1, sr * dur, sr);
-    const data   = buf.getChannelData(0);
-
-    // Ruído filtrado com envelope de decaimento — simula o sussurro do papel
-    for (let i = 0; i < data.length; i++) {
+    // Camada 1: rustle (papel deslizando)
+    const sr  = audioCtx.sampleRate;
+    const buf1 = audioCtx.createBuffer(1, sr * 0.32, sr);
+    const d1   = buf1.getChannelData(0);
+    for (let i = 0; i < d1.length; i++) {
       const t = i / sr;
-      data[i] = (Math.random() * 2 - 1) * Math.exp(-t * 20) * 0.9;
+      // Sino assimétrico: ataque em 25ms, decaimento exponencial
+      const env = t < 0.025 ? t / 0.025 : Math.exp(-(t - 0.025) * 14);
+      d1[i] = (Math.random() * 2 - 1) * env;
     }
+    const s1 = audioCtx.createBufferSource();
+    s1.buffer = buf1;
+    const hpf = audioCtx.createBiquadFilter();
+    hpf.type = 'highpass'; hpf.frequency.value = 2800;
+    const g1 = audioCtx.createGain(); g1.gain.value = 0.13;
+    s1.connect(hpf).connect(g1).connect(audioCtx.destination);
+    s1.start(now);
 
-    const src    = audioCtx.createBufferSource();
-    src.buffer   = buf;
-
-    const bpf    = audioCtx.createBiquadFilter();
-    bpf.type     = 'bandpass';
-    bpf.frequency.value = 1600;
-    bpf.Q.value  = 0.45;
-
-    const gain   = audioCtx.createGain();
-    gain.gain.value = 0.11; // bem de leve
-
-    src.connect(bpf);
-    bpf.connect(gain);
-    gain.connect(audioCtx.destination);
-    src.start();
+    // Camada 2: thump suave (página pousando)
+    const buf2 = audioCtx.createBuffer(1, sr * 0.08, sr);
+    const d2   = buf2.getChannelData(0);
+    for (let i = 0; i < d2.length; i++) {
+      const t = i / sr;
+      d2[i] = (Math.random() * 2 - 1) * Math.exp(-t * 60);
+    }
+    const s2 = audioCtx.createBufferSource();
+    s2.buffer = buf2;
+    const lpf = audioCtx.createBiquadFilter();
+    lpf.type = 'lowpass'; lpf.frequency.value = 400;
+    const g2 = audioCtx.createGain(); g2.gain.value = 0.10;
+    s2.connect(lpf).connect(g2).connect(audioCtx.destination);
+    s2.start(now + 0.22); // thump no final do rustle
   } catch (_) { /* silencia se o navegador bloquear */ }
 }
 
 // Controles
-btnPrev.addEventListener('click', () => pageFlip.flipPrev());
-btnNext.addEventListener('click', () => pageFlip.flipNext());
+btnPrev.addEventListener('click', () => { playPageTurn(); pageFlip.flipPrev(); });
+btnNext.addEventListener('click', () => { playPageTurn(); pageFlip.flipNext(); });
 
 // Teclado
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft')  pageFlip.flipPrev();
-  if (e.key === 'ArrowRight') pageFlip.flipNext();
+  if (e.key === 'ArrowLeft')  { playPageTurn(); pageFlip.flipPrev(); }
+  if (e.key === 'ArrowRight') { playPageTurn(); pageFlip.flipNext(); }
   if (e.key === 'Escape')     closeOverlays();
 });
 
