@@ -9,8 +9,7 @@ assets/audio/*.mp3
 assets/audio/*.wav
 assets/audio/*.ogg
 
-# Markers AR (binários MindAR)
-assets/markers/*.mind
+# Markers AR NFT (fset são grandes, .mind são pequenos e devem ser commitados)
 assets/markers/*.fset
 assets/markers/*.fset3
 assets/markers/*.iset
