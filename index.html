@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deise em... Tudo aqui já foi um sonho!</title>
   <meta name="description" content="Livro digital interativo inclusivo — Deise em... Tudo aqui já foi um sonho! Com Realidade Aumentada, narração em áudio e Libras.">
   <meta property="og:title" content="Deise em... Tudo aqui já foi um sonho!">
@@ -22,6 +22,11 @@
       <button id="btn-prev" aria-label="Página anterior">&#8592;</button>
       <span id="page-indicator"></span>
       <button id="btn-next" aria-label="Próxima página">&#8594;</button>
+      <div id="zoom-controls">
+        <button id="btn-zoom-out" aria-label="Diminuir zoom">&#8722;</button>
+        <span id="zoom-indicator">100%</span>
+        <button id="btn-zoom-in" aria-label="Aumentar zoom">&#43;</button>
+      </div>
     </div>
 
     <!-- Overlay de vídeo Libras -->
@@ -38,11 +43,10 @@
       <span>&#9654; Narrando...</span>
     </div>
 
-    <a href="assets/livro-deise.epub" download
-       style="color:rgba(255,255,255,0.4);font-size:0.75rem;padding:4px 8px;text-decoration:none;text-align:center;display:block;"
-       aria-label="Baixar versão acessível para leitores de tela">
-      ♿ Versão acessível (.epub)
-    </a>
+    <!-- Link EPUB ativado quando o arquivo estiver disponível -->
+    <p id="epub-placeholder" style="color:rgba(255,255,255,0.25);font-size:0.7rem;text-align:center;padding:2px 0;">
+      ♿ Versão acessível (.epub) — em breve
+    </p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>

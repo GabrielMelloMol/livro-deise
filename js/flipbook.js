@@ -1,10 +1,70 @@
 // js/flipbook.js
 import { PAGES, SITE_URL } from './config.js';
 
-const flipbook = document.getElementById('flipbook');
-const btnPrev = document.getElementById('btn-prev');
-const btnNext = document.getElementById('btn-next');
-const pageIndicator = document.getElementById('page-indicator');
+const flipbook        = document.getElementById('flipbook');
+const flipbookContainer = document.getElementById('flipbook-container');
+const btnPrev         = document.getElementById('btn-prev');
+const btnNext         = document.getElementById('btn-next');
+const pageIndicator   = document.getElementById('page-indicator');
+const btnZoomIn       = document.getElementById('btn-zoom-in');
+const btnZoomOut      = document.getElementById('btn-zoom-out');
+const zoomIndicator   = document.getElementById('zoom-indicator');
+
+// --- Zoom ---
+let zoomLevel = 1;
+const ZOOM_MIN = 0.5;
+const ZOOM_MAX = 3;
+const ZOOM_STEP = 0.25;
+
+// Wrapper aplicado no container para não interferir no StPageFlip
+let zoomWrapper = null;
+
+function applyZoom() {
+  if (zoomWrapper) zoomWrapper.style.transform = `scale(${zoomLevel})`;
+  zoomIndicator.textContent = `${Math.round(zoomLevel * 100)}%`;
+}
+
+function setZoom(delta) {
+  zoomLevel = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomLevel + delta));
+  applyZoom();
+}
+
+function resetZoom() { zoomLevel = 1; applyZoom(); }
+
+btnZoomIn.addEventListener('click',  () => setZoom(+ZOOM_STEP));
+btnZoomOut.addEventListener('click', () => setZoom(-ZOOM_STEP));
+
+// Scroll → zoom
+flipbookContainer.addEventListener('wheel', e => {
+  if (e.ctrlKey || e.metaKey || Math.abs(e.deltaY) > 0) {
+    e.preventDefault();
+    setZoom(e.deltaY < 0 ? +ZOOM_STEP : -ZOOM_STEP);
+  }
+}, { passive: false });
+
+// Pinch to zoom (mobile)
+let lastPinchDist = null;
+flipbookContainer.addEventListener('touchstart', e => {
+  if (e.touches.length === 2) lastPinchDist = Math.hypot(
+    e.touches[0].clientX - e.touches[1].clientX,
+    e.touches[0].clientY - e.touches[1].clientY
+  );
+}, { passive: true });
+flipbookContainer.addEventListener('touchmove', e => {
+  if (e.touches.length === 2 && lastPinchDist) {
+    const dist = Math.hypot(
+      e.touches[0].clientX - e.touches[1].clientX,
+      e.touches[0].clientY - e.touches[1].clientY
+    );
+    const delta = (dist - lastPinchDist) / 200;
+    setZoom(delta);
+    lastPinchDist = dist;
+  }
+}, { passive: true });
+flipbookContainer.addEventListener('touchend', () => { lastPinchDist = null; }, { passive: true });
+
+// Duplo clique → reset zoom
+flipbookContainer.addEventListener('dblclick', resetZoom);
 
 // Dimensões responsivas
 function getBookSize() {
@@ -74,6 +134,15 @@ let pageFlip;
 function initFlipbook() {
   const { width, height } = getBookSize();
   buildPages();
+
+  // Criar wrapper de zoom ao redor do flipbook
+  if (!zoomWrapper) {
+    zoomWrapper = document.createElement('div');
+    zoomWrapper.id = 'zoom-wrapper';
+    flipbookContainer.appendChild(zoomWrapper);
+    zoomWrapper.appendChild(flipbook);
+  }
+  applyZoom();
 
   pageFlip = new St.PageFlip(flipbook, {
     width: width / 2,
@@ -153,11 +222,15 @@ function closeOverlays() {
   stopAudio();
 }
 
-// Responsividade
+// Responsividade (debounced)
+let resizeTimer;
 window.addEventListener('resize', () => {
-  if (pageFlip) pageFlip.destroy();
-  flipbook.innerHTML = '';
-  initFlipbook();
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    if (pageFlip) pageFlip.destroy();
+    flipbook.innerHTML = '';
+    initFlipbook();
+  }, 200);
 });
 
 initFlipbook();

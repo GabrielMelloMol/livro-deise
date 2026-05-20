@@ -4,7 +4,8 @@ import os
 
 PDF_PATH = "Deise em tudo aqui já foi um sonho.pdf"
 OUTPUT_DIR = "assets/pages"
-DPI = 150  # 150dpi = boa qualidade sem arquivo pesado demais
+DPI = 250  # 250dpi = extrema qualidade para retina/mobile
+JPG_QUALITY = 95
 
 def export_pages(pdf_path=PDF_PATH, output_dir=OUTPUT_DIR, dpi=DPI):
     os.makedirs(output_dir, exist_ok=True)
@@ -14,7 +15,7 @@ def export_pages(pdf_path=PDF_PATH, output_dir=OUTPUT_DIR, dpi=DPI):
     for i, page in enumerate(doc):
         pix = page.get_pixmap(matrix=mat)
         filename = f"page-{i+1:02d}.jpg"
-        pix.save(os.path.join(output_dir, filename), jpg_quality=90)
+        pix.save(os.path.join(output_dir, filename), jpg_quality=JPG_QUALITY)
         print(f"  Exportada: {filename} ({pix.width}x{pix.height}px)")
     print(f"\nTotal: {len(doc)} páginas exportadas para {output_dir}/")
     doc.close()
