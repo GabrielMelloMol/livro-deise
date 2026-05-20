@@ -1,12 +1,28 @@
 # Assets pesados — não commitar
 assets/libras/*.mp4
+assets/libras/*.MP4
 assets/pages/*.jpg
+assets/pages/*.jpeg
 assets/pages/*.webp
+assets/pages/*.png
+assets/audio/*.mp3
+assets/audio/*.wav
+assets/audio/*.ogg
+
+# Markers AR (binários MindAR)
+assets/markers/*.mind
+assets/markers/*.fset
+assets/markers/*.fset3
+assets/markers/*.iset
 
 # Python
 __pycache__/
 *.pyc
+
+# Variáveis de ambiente
 .env
+.env.*
 
 # OS
 .DS_Store
+Thumbs.db

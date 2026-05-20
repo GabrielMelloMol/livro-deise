@@ -20,3 +20,12 @@ Site: https://gabrielmellomol.github.io/livro-deise/
 
 ## Stack
 StPageFlip · Howler.js · MindAR.js · Lottie · tsParticles · edge-tts · yt-dlp · GitHub Pages
+
+## Desenvolvimento local
+
+```bash
+python -m http.server 8080
+# Abrir http://localhost:8080
+```
+
+> **Nota:** Os arquivos `js/config.js` e `scripts/export_pdf.py` serão criados nas próximas tasks de implementação.
