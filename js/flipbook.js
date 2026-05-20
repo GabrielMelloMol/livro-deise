@@ -93,7 +93,7 @@ function initFlipbook() {
 
   pageFlip.on('flip', e => {
     pageIndicator.textContent = `${e.data + 1} / ${PAGES.length}`;
-    stopAudio();
+    closeOverlays();
   });
 
   pageIndicator.textContent = `1 / ${PAGES.length}`;
