@@ -115,7 +115,12 @@ body {
 #zoom-wrapper {
   transform-origin: center center;
   will-change: transform;
+  pointer-events: none;
 }
+
+/* Páginas não capturam eventos (zoom-wrapper é none); ícones sim */
+.page { pointer-events: none; }
+.page-icon { pointer-events: auto; }
 
 #flipbook { touch-action: none; }
 
