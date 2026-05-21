@@ -123,6 +123,14 @@ body {
 
 #flipbook { touch-action: none; }
 
+/* Impede seleção de texto/imagem na área do livro */
+#flipbook-container, #zoom-wrapper, .page, .page img {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  draggable: false;
+}
+
 /* ---- Controls ---- */
 #controls {
   display: flex;

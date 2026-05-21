@@ -113,7 +113,7 @@ flipbookContainer.addEventListener('wheel', e => {
   setZoom(e.deltaY < 0 ? +ZOOM_STEP : -ZOOM_STEP, false); // instantâneo
 }, { passive: false });
 
-flipbookContainer.addEventListener('dblclick', resetZoom);
+// dblclick removido — virar páginas rápido não deve resetar zoom
 
 // Clique simples: metade esquerda = voltar, metade direita = avançar
 flipbookContainer.addEventListener('click', e => {
@@ -206,9 +206,10 @@ function buildPages() {
     div.dataset.pageId = p.id;
 
     const img = document.createElement('img');
-    img.src     = p.image;
-    img.alt     = `Página ${p.id} do livro`;
-    img.loading = p.id <= 4 ? 'eager' : 'lazy';
+    img.src             = p.image;
+    img.alt             = `Página ${p.id} do livro`;
+    img.loading         = p.id <= 4 ? 'eager' : 'lazy';
+    img.draggable       = false;
     div.appendChild(img);
 
     if (p.libras) {
