@@ -17,20 +17,24 @@ const btnFullscreen     = document.getElementById('btn-fullscreen');
 const versionEl = document.getElementById('app-version');
 if (versionEl) versionEl.textContent = `v${VERSION}`;
 
-// ----- Tela cheia (fullscreen no body para manter background e stars) -----
+// ----- Tela cheia -----
 if (btnFullscreen) {
   btnFullscreen.addEventListener('click', () => {
-    if (!document.fullscreenElement) {
-      document.body.requestFullscreen().catch(() => {});
+    const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if (!inFS) {
+      const el = document.documentElement;
+      (el.requestFullscreen || el.webkitRequestFullscreen).call(el).catch(() => {});
     } else {
-      document.exitFullscreen().catch(() => {});
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document).catch(() => {});
     }
   });
-  document.addEventListener('fullscreenchange', () => {
-    const inFS = !!document.fullscreenElement;
+  const onFSChange = () => {
+    const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
     btnFullscreen.setAttribute('aria-label', inFS ? 'Sair da tela cheia' : 'Tela cheia');
     btnFullscreen.title = inFS ? 'Sair da tela cheia' : 'Tela cheia';
-  });
+  };
+  document.addEventListener('fullscreenchange', onFSChange);
+  document.addEventListener('webkitfullscreenchange', onFSChange);
 }
 
 // ----- Zoom — RENDER_SCALE renderiza o livro a 2× e escala para baixo -----
