@@ -19,19 +19,28 @@ if (versionEl) versionEl.textContent = `v${VERSION}`;
 
 // ----- Tela cheia -----
 if (btnFullscreen) {
+  const applyFS = inFS => {
+    document.documentElement.classList.toggle('is-fullscreen', inFS);
+    btnFullscreen.setAttribute('aria-label', inFS ? 'Sair da tela cheia' : 'Tela cheia');
+    btnFullscreen.title = inFS ? 'Sair da tela cheia' : 'Tela cheia';
+  };
+
   btnFullscreen.addEventListener('click', () => {
     const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
     if (!inFS) {
       const el = document.documentElement;
-      (el.requestFullscreen || el.webkitRequestFullscreen).call(el).catch(() => {});
+      const fn = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (fn) fn.call(el).catch(() => applyFS(true)); // fallback CSS se API falhar
+      else applyFS(true);
     } else {
-      (document.exitFullscreen || document.webkitExitFullscreen).call(document).catch(() => {});
+      const fn = document.exitFullscreen || document.webkitExitFullscreen;
+      if (fn) fn.call(document).catch(() => applyFS(false));
+      else applyFS(false);
     }
   });
+
   const onFSChange = () => {
-    const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
-    btnFullscreen.setAttribute('aria-label', inFS ? 'Sair da tela cheia' : 'Tela cheia');
-    btnFullscreen.title = inFS ? 'Sair da tela cheia' : 'Tela cheia';
+    applyFS(!!(document.fullscreenElement || document.webkitFullscreenElement));
   };
   document.addEventListener('fullscreenchange', onFSChange);
   document.addEventListener('webkitfullscreenchange', onFSChange);
@@ -84,6 +93,18 @@ flipbookContainer.addEventListener('wheel', e => {
 }, { passive: false });
 
 flipbookContainer.addEventListener('dblclick', resetZoom);
+
+// Clique simples: metade esquerda = voltar, metade direita = avançar
+flipbookContainer.addEventListener('click', e => {
+  if (e.target.closest('.page-icon')) return;
+  if (!pageFlip) return;
+  const rect = flipbookContainer.getBoundingClientRect();
+  if (e.clientX - rect.left < rect.width / 2) {
+    playPageTurn(); pageFlip.flipPrev();
+  } else {
+    playPageTurn(); pageFlip.flipNext();
+  }
+});
 
 // ----- Touch: pinch (zoom) + swipe (virar página) — num único handler -----
 const touch = { startX: null, startY: null, pinchDist: null };
@@ -372,7 +393,7 @@ let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    if (pageFlip) pageFlip.destroy();
+    try { if (pageFlip) pageFlip.destroy(); } catch (_) {}
     flipbook.innerHTML = '';
     initFlipbook();
   }, 250);

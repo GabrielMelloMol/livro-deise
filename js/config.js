@@ -1,7 +1,7 @@
 // js/config.js
 // CONFIG CENTRAL — edite aqui para trocar assets sem mexer no código
 
-export const VERSION  = '0.7.1';
+export const VERSION  = '0.7.2';
 export const SITE_URL = "https://gabrielmellomol.github.io/livro-deise";
 
 // Cenas de RA: chave = id, valor = páginas do livro e narração
