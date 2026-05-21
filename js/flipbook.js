@@ -17,6 +17,24 @@ const btnFullscreen     = document.getElementById('btn-fullscreen');
 const versionEl = document.getElementById('app-version');
 if (versionEl) versionEl.textContent = `v${VERSION}`;
 
+// ----- Rebuild limpo (remove zoom-wrapper para não herdar estado do StPageFlip) -----
+let resizeTimer;
+function rebuildFlipbook() {
+  try { if (pageFlip) pageFlip.destroy(); } catch (_) {}
+  pageFlip = null;
+
+  // Remove zoom-wrapper completamente para evitar estilos residuais do StPageFlip
+  if (zoomWrapper) {
+    if (flipbook.parentNode === zoomWrapper) flipbookContainer.appendChild(flipbook);
+    zoomWrapper.remove();
+    zoomWrapper = null;
+  }
+
+  flipbook.innerHTML = '';
+  flipbook.removeAttribute('style'); // limpa estilos inline do StPageFlip anterior
+  initFlipbook();
+}
+
 // ----- Tela cheia -----
 if (btnFullscreen) {
   const applyFS = inFS => {
@@ -30,17 +48,20 @@ if (btnFullscreen) {
     if (!inFS) {
       const el = document.documentElement;
       const fn = el.requestFullscreen || el.webkitRequestFullscreen;
-      if (fn) fn.call(el).catch(() => applyFS(true)); // fallback CSS se API falhar
-      else applyFS(true);
+      if (fn) fn.call(el).catch(() => { applyFS(true); rebuildFlipbook(); });
+      else { applyFS(true); rebuildFlipbook(); }
     } else {
       const fn = document.exitFullscreen || document.webkitExitFullscreen;
-      if (fn) fn.call(document).catch(() => applyFS(false));
-      else applyFS(false);
+      if (fn) fn.call(document).catch(() => { applyFS(false); rebuildFlipbook(); });
+      else { applyFS(false); rebuildFlipbook(); }
     }
   });
 
   const onFSChange = () => {
     applyFS(!!(document.fullscreenElement || document.webkitFullscreenElement));
+    // Rebuild com as dimensões corretas do novo viewport
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(rebuildFlipbook, 150);
   };
   document.addEventListener('fullscreenchange', onFSChange);
   document.addEventListener('webkitfullscreenchange', onFSChange);
@@ -388,15 +409,11 @@ function hideLoading() {
   }, 500);
 }
 
-// ----- Responsividade (debounced) -----
-let resizeTimer;
+// ----- Responsividade (debounced) — fullscreen já tratado no onFSChange -----
 window.addEventListener('resize', () => {
+  if (document.fullscreenElement || document.webkitFullscreenElement) return;
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    try { if (pageFlip) pageFlip.destroy(); } catch (_) {}
-    flipbook.innerHTML = '';
-    initFlipbook();
-  }, 250);
+  resizeTimer = setTimeout(rebuildFlipbook, 250);
 });
 
 initFlipbook();
