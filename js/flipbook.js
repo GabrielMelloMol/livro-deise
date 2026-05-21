@@ -177,6 +177,13 @@ flipbookContainer.addEventListener('touchend', e => {
 
 // ----- Dimensões responsivas (multiplicadas por RENDER_SCALE) -----
 function getBookSize() {
+  const portrait = window.innerWidth < 700;
+  if (portrait) {
+    // Modo retrato: uma página por vez, ocupa toda a tela
+    const maxH = window.innerHeight - 54;  // controles compactos
+    const maxW = window.innerWidth;
+    return { width: maxW * RENDER_SCALE * 2, height: maxH * RENDER_SCALE };
+  }
   const maxH = window.innerHeight - 130;
   const maxW = window.innerWidth - 40;
   const pageH = Math.min(maxH, 600)  * RENDER_SCALE;
@@ -273,8 +280,8 @@ function initFlipbook() {
     width:    width / 2,
     height,
     size:     'fixed',
-    minWidth: 150,  maxWidth: 420  * RENDER_SCALE,
-    minHeight: 300, maxHeight: 600 * RENDER_SCALE,
+    minWidth: 150,  maxWidth: 1400,
+    minHeight: 200, maxHeight: 2000,
     showCover:           true,
     mobileScrollSupport: false,
     swipeDistance:       9999,

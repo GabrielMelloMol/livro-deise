@@ -310,10 +310,31 @@ html.is-fullscreen #app {
 }
 
 /* ---- Responsivo ---- */
-@media (max-width: 600px) {
-  .page-icon    { width: 34px; height: 34px; font-size: 1rem; }
-  .icon-audio   { top: 52px; }
-  .icon-ar      { top: 94px; }
+@media (max-width: 700px) {
+  /* App ocupa a tela dinâmica real (sem barra do browser no iOS) */
+  #app {
+    gap: 0;
+    height: 100dvh;
+  }
+
+  /* Título some — mais espaço para o livro */
+  #book-title { display: none; }
+
+  /* Controles compactos: só setas + página */
+  #zoom-controls  { display: none; }
   #extra-controls { display: none; }
-  #book-title h1 { font-size: 0.65rem; }
+  #controls {
+    padding: 6px 0 8px;
+    gap: 10px;
+  }
+  #controls > button {
+    padding: 6px 22px;
+    font-size: 1.3rem;
+  }
+  #page-indicator { font-size: 0.78rem; }
+
+  /* Ícones de página menores */
+  .page-icon { width: 32px; height: 32px; font-size: 0.9rem; }
+  .icon-audio { top: 48px; }
+  .icon-ar    { top: 86px; }
 }
