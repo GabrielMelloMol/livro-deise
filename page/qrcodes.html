@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Codes — Livro Deise</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; background: #fff; color: #111; padding: 20px; }
+    h1 { font-size: 1.1rem; margin-bottom: 4px; }
+    p.sub { font-size: 0.8rem; color: #555; margin-bottom: 20px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 16px;
+    }
+    .qr-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .qr-card canvas { width: 120px !important; height: 120px !important; }
+    .qr-label { font-size: 0.75rem; color: #333; line-height: 1.3; }
+    .qr-label strong { display: block; font-size: 0.9rem; margin-bottom: 2px; }
+    .badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+    .badge {
+      font-size: 0.6rem;
+      padding: 2px 5px;
+      border-radius: 3px;
+      color: #fff;
+      font-weight: bold;
+    }
+    .badge-audio  { background: #f77f00; }
+    .badge-libras { background: #0077b6; }
+
+    @media print {
+      body { padding: 10px; }
+      h1, p.sub, #btn-print { display: none; }
+      .grid { gap: 10px; }
+      .qr-card { break-inside: avoid; }
+    }
+
+    #btn-print {
+      margin-bottom: 20px;
+      padding: 10px 24px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>QR Codes — Deise em… Tudo aqui já foi um sonho!</h1>
+<p class="sub">Cada QR leva para a experiência da página no celular. Cole nas páginas do livro físico.</p>
+<button id="btn-print" onclick="window.print()">🖨️ Imprimir</button>
+
+<div class="grid" id="grid"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script type="module">
+import { PAGES, SITE_URL } from '../js/config.js';
+
+const grid = document.getElementById('grid');
+
+for (const p of PAGES) {
+  if (!p.audio && !p.libras) continue;  // só páginas com conteúdo
+
+  const url = `${SITE_URL}/page/?id=${p.id}`;
+
+  const card = document.createElement('div');
+  card.className = 'qr-card';
+
+  const canvas = document.createElement('canvas');
+  card.appendChild(canvas);
+
+  QRCode.toCanvas(canvas, url, { width: 120, margin: 1, errorCorrectionLevel: 'M' });
+
+  const badges = document.createElement('div');
+  badges.className = 'badges';
+  if (p.audio)  badges.innerHTML += '<span class="badge badge-audio">🔊 Áudio</span>';
+  if (p.libras) badges.innerHTML += '<span class="badge badge-libras">🤟 Libras</span>';
+  card.appendChild(badges);
+
+  const label = document.createElement('div');
+  label.className = 'qr-label';
+  label.innerHTML = `<strong>Página ${p.id}</strong>${url.replace('https://','')}`;
+  card.appendChild(label);
+
+  grid.appendChild(card);
+}
+</script>
+</body>
+</html>
