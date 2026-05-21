@@ -256,14 +256,6 @@ function buildPages() {
   });
 }
 
-// ----- localStorage: última página visitada -----
-const LS_KEY = 'livro-deise-page';
-function savePage(idx) {
-  try { localStorage.setItem(LS_KEY, idx); } catch (_) {}
-}
-function loadSavedPage() {
-  try { return Math.max(0, parseInt(localStorage.getItem(LS_KEY), 10) || 0); } catch (_) { return 0; }
-}
 
 // ----- StPageFlip -----
 let pageFlip;
@@ -298,17 +290,12 @@ function initFlipbook() {
   initPageTurnSound();
   pageFlip.loadFromHTML(document.querySelectorAll('.page'));
 
-  const savedPage = loadSavedPage();
-  if (savedPage > 0) requestAnimationFrame(() => pageFlip.turnToPage(savedPage));
-
   pageFlip.on('flip', e => {
-    const idx = e.data;
-    pageIndicator.textContent = `${idx + 1} / ${PAGES.length}`;
-    savePage(idx);
+    pageIndicator.textContent = `${e.data + 1} / ${PAGES.length}`;
     closeOverlays();
   });
 
-  pageIndicator.textContent = `${savedPage + 1} / ${PAGES.length}`;
+  pageIndicator.textContent = `1 / ${PAGES.length}`;
 
   hideLoading();
 }
