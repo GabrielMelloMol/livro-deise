@@ -156,7 +156,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
 <script type="module">
-import { PAGES } from '../js/config.js';
+import { PAGES, PAGE_TEXTS } from '../js/config.js';
 import '../js/stars.js';
 
 const params = new URLSearchParams(location.search);
@@ -170,6 +170,18 @@ const status     = document.getElementById('status');
 const overlayLib = document.getElementById('overlay-libras');
 const videoLib   = document.getElementById('video-libras');
 
+// TTS helper
+function speakText(text) {
+  if (!window.speechSynthesis || !text) return;
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'pt-BR';
+  utt.rate = 0.88;
+  utt.onstart = () => { btnAudio.innerHTML = '⏸ Pausar narração'; };
+  utt.onend   = () => { btnAudio.innerHTML = '🔊 Ouvir narração'; };
+  speechSynthesis.speak(utt);
+}
+
 if (!page) {
   status.textContent = 'Página não encontrada.';
 } else {
@@ -177,32 +189,48 @@ if (!page) {
   thumb.alt = `Página ${page.id} do livro`;
   document.title = `Deise — Página ${page.id}`;
 
-  // Narração
-  if (page.audio) {
+  const hasText = !!PAGE_TEXTS[page.id];
+
+  // Narração: MP3 com fallback para TTS
+  if (page.audio || hasText) {
     btnAudio.classList.remove('hidden');
     let sound = null;
     let playing = false;
 
     btnAudio.addEventListener('click', () => {
+      // Se TTS está falando, para
+      if (window.speechSynthesis?.speaking) {
+        speechSynthesis.cancel();
+        btnAudio.innerHTML = '🔊 Ouvir narração';
+        return;
+      }
+      // Se MP3 está tocando, para
       if (playing) {
         sound?.stop();
         playing = false;
         btnAudio.innerHTML = '🔊 Ouvir narração';
         return;
       }
-      btnAudio.innerHTML = '⏳ Carregando…';
-      sound = new Howl({
-        src: ['../' + page.audio],
-        html5: true,
-        onplay:  () => { playing = true;  btnAudio.innerHTML = '⏸ Pausar narração'; },
-        onend:   () => { playing = false; btnAudio.innerHTML = '🔊 Ouvir narração'; },
-        onstop:  () => { playing = false; btnAudio.innerHTML = '🔊 Ouvir narração'; },
-        onerror: () => { playing = false; btnAudio.innerHTML = '🔊 Ouvir narração'; status.textContent = 'Áudio não disponível ainda.'; },
-      });
-      sound.play();
+
+      if (page.audio) {
+        btnAudio.innerHTML = '⏳ Carregando…';
+        sound = new Howl({
+          src: ['../' + page.audio],
+          html5: true,
+          onplay:  () => { playing = true;  btnAudio.innerHTML = '⏸ Pausar narração'; },
+          onend:   () => { playing = false; btnAudio.innerHTML = '🔊 Ouvir narração'; sound = null; },
+          onstop:  () => { playing = false; btnAudio.innerHTML = '🔊 Ouvir narração'; },
+          onerror: () => {
+            playing = false; sound = null;
+            if (hasText) speakText(PAGE_TEXTS[page.id]);
+            else { btnAudio.innerHTML = '🔊 Ouvir narração'; status.textContent = 'Áudio não disponível ainda.'; }
+          },
+        });
+        sound.play();
+      } else {
+        speakText(PAGE_TEXTS[page.id]);
+      }
     });
-  } else {
-    status.textContent = 'Narração não disponível para esta página.';
   }
 
   // Libras

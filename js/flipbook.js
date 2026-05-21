@@ -1,5 +1,5 @@
 // js/flipbook.js
-import { PAGES, SITE_URL, VERSION } from './config.js';
+import { PAGES, PAGE_TEXTS, SITE_URL, VERSION } from './config.js';
 import './stars.js';
 
 // ----- DOM refs -----
@@ -222,14 +222,18 @@ function buildPages() {
       div.appendChild(btn);
     }
 
-    if (p.audio) {
+    if (p.audio || PAGE_TEXTS[p.id]) {
       const btn = document.createElement('button');
       btn.className = 'page-icon icon-audio';
       btn.title = 'Ouvir narração';
       btn.setAttribute('aria-label', 'Ouvir narração desta página');
       btn.innerHTML = '&#128266;';
       blockFlip(btn);
-      btn.addEventListener('click', e => { e.stopPropagation(); playAudio(p.audio); });
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        if (p.audio) playAudio(p.audio, p.id);
+        else         speakText(PAGE_TEXTS[p.id]);
+      });
       div.appendChild(btn);
     }
 
@@ -382,23 +386,44 @@ function closeLibras() {
   overlayLibras.classList.add('hidden');
 }
 
-// ----- Overlay Áudio -----
+// ----- Overlay Áudio + TTS -----
 let currentSound = null;
 const overlayAudio = document.getElementById('overlay-audio');
 document.getElementById('btn-audio-close').addEventListener('click', stopAudio);
 
-function playAudio(src) {
+function playAudio(src, pageId) {
   stopAudio();
   currentSound = new Howl({
     src: [src], html5: true,
     onend:   () => { overlayAudio.classList.add('hidden'); currentSound = null; },
-    onerror: () => {  overlayAudio.classList.add('hidden'); },
+    onerror: () => {
+      // MP3 não encontrado — cai no TTS se houver texto
+      currentSound = null;
+      overlayAudio.classList.add('hidden');
+      const text = PAGE_TEXTS[pageId];
+      if (text) speakText(text);
+    },
   });
   currentSound.play();
   overlayAudio.classList.remove('hidden');
 }
+
+function speakText(text) {
+  if (!window.speechSynthesis || !text) return;
+  stopAudio();
+  speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'pt-BR';
+  utt.rate = 0.88;
+  utt.onstart = () => overlayAudio.classList.remove('hidden');
+  utt.onend   = () => overlayAudio.classList.add('hidden');
+  utt.onerror = () => overlayAudio.classList.add('hidden');
+  speechSynthesis.speak(utt);
+}
+
 function stopAudio() {
   if (currentSound) { currentSound.stop(); currentSound = null; }
+  if (window.speechSynthesis) speechSynthesis.cancel();
   overlayAudio.classList.add('hidden');
 }
 function closeOverlays() { closeLibras(); stopAudio(); }
