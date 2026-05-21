@@ -277,10 +277,9 @@ function initFlipbook() {
     minHeight: 300, maxHeight: 600 * RENDER_SCALE,
     showCover:           true,
     mobileScrollSupport: false,
-    // swipeDistance muito alto = desabilita drag/fold do StPageFlip
-    // usamos swipe customizado acima para não ter o bug do fold na frente dos botões
-    swipeDistance:  9999,
-    drawShadow:     false,
+    swipeDistance:       9999,
+    drawShadow:          false,
+    showPageCorners:     false,
     usePortrait:    window.innerWidth < 700,
   });
 
