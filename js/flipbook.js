@@ -12,35 +12,32 @@ const btnZoomIn         = document.getElementById('btn-zoom-in');
 const btnZoomOut        = document.getElementById('btn-zoom-out');
 const zoomIndicator     = document.getElementById('zoom-indicator');
 const btnFullscreen     = document.getElementById('btn-fullscreen');
-const btnWhatsapp       = document.getElementById('btn-whatsapp');
 
 // ----- Versão -----
 const versionEl = document.getElementById('app-version');
 if (versionEl) versionEl.textContent = `v${VERSION}`;
 
-// ----- WhatsApp -----
-if (btnWhatsapp) {
-  const txt = encodeURIComponent(`Olha esse livro incrível! 📖✨\n${SITE_URL}`);
-  btnWhatsapp.href = `https://wa.me/?text=${txt}`;
-}
-
-// ----- Tela cheia -----
+// ----- Tela cheia (fullscreen no body para manter background e stars) -----
 if (btnFullscreen) {
   btnFullscreen.addEventListener('click', () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {});
+      document.body.requestFullscreen().catch(() => {});
     } else {
       document.exitFullscreen().catch(() => {});
     }
   });
   document.addEventListener('fullscreenchange', () => {
-    btnFullscreen.setAttribute('aria-label', document.fullscreenElement ? 'Sair da tela cheia' : 'Tela cheia');
-    btnFullscreen.title = document.fullscreenElement ? 'Sair da tela cheia' : 'Tela cheia';
+    const inFS = !!document.fullscreenElement;
+    btnFullscreen.setAttribute('aria-label', inFS ? 'Sair da tela cheia' : 'Tela cheia');
+    btnFullscreen.title = inFS ? 'Sair da tela cheia' : 'Tela cheia';
   });
 }
 
-// ----- Zoom — sem transition no scroll, suave nos botões -----
-let zoomLevel   = 1;
+// ----- Zoom — RENDER_SCALE renderiza o livro a 2× e escala para baixo -----
+// Isso faz o zoom aproximar dos pixels nativos em vez de afastar deles,
+// eliminando a perda de qualidade que existe no transform: scale() puro.
+const RENDER_SCALE = 2;
+let zoomLevel   = 1;     // 1 = visual 100% (scale CSS = 1/RENDER_SCALE)
 const ZOOM_MIN  = 0.5;
 const ZOOM_MAX  = 3;
 const ZOOM_STEP = 0.25;
@@ -48,7 +45,8 @@ let zoomWrapper = null;
 let zoomTransTimer = null;
 
 function applyZoom() {
-  if (zoomWrapper) zoomWrapper.style.transform = `scale(${zoomLevel})`;
+  // CSS scale = zoomLevel / RENDER_SCALE → a 100% o livro parece normal mas renderiza a 2×
+  if (zoomWrapper) zoomWrapper.style.transform = `scale(${zoomLevel / RENDER_SCALE})`;
   zoomIndicator.textContent = `${Math.round(zoomLevel * 100)}%`;
 }
 
@@ -131,12 +129,12 @@ flipbookContainer.addEventListener('touchend', e => {
   }
 }, { passive: true });
 
-// ----- Dimensões responsivas -----
+// ----- Dimensões responsivas (multiplicadas por RENDER_SCALE) -----
 function getBookSize() {
   const maxH = window.innerHeight - 130;
   const maxW = window.innerWidth - 40;
-  const pageH = Math.min(maxH, 600);
-  const pageW = Math.min(maxW / 2, 420);
+  const pageH = Math.min(maxH, 600)  * RENDER_SCALE;
+  const pageW = Math.min(maxW / 2, 420) * RENDER_SCALE;
   return { width: pageW * 2, height: pageH };
 }
 
@@ -229,8 +227,8 @@ function initFlipbook() {
     width:    width / 2,
     height,
     size:     'fixed',
-    minWidth: 150,  maxWidth: 420,
-    minHeight: 300, maxHeight: 600,
+    minWidth: 150,  maxWidth: 420  * RENDER_SCALE,
+    minHeight: 300, maxHeight: 600 * RENDER_SCALE,
     showCover:           true,
     mobileScrollSupport: false,
     // swipeDistance muito alto = desabilita drag/fold do StPageFlip
