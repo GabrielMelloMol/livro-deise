@@ -1,10 +1,109 @@
 // js/config.js
 // CONFIG CENTRAL — edite aqui para trocar assets sem mexer no código
 
-export const VERSION  = '0.8.3';
+export const VERSION  = '1.0.11';
 export const SITE_URL = "https://gabrielmellomol.github.io/livro-deise";
 
-// Cenas de RA: chave = id, valor = páginas do livro e narração
+// ---------------------------------------------------------------------------
+// CAPA / CONTRACAPA
+// ---------------------------------------------------------------------------
+export const COVER = {
+  image: "assets/pages/cover.jpg",
+  label: "Capa",
+  alt: "Capa do livro Deise em… Tudo aqui já foi um sonho! Uma menina de cabelo cacheado, apoiada nas mãos, sonha acordada. Acima dela, uma nuvem mostra crianças tocando música, dançando balé e praticando luta. Autoras e autor: Tatiana Nóbrega Onofre, Sheila Arantes e Gabriel Mol. Selo: Livro Inclusivo, com áudio, Libras e Braille.",
+};
+
+export const BACK_COVER = {
+  image: "assets/pages/back-cover.jpg",
+  label: "Contracapa",
+  alt: "Contracapa do livro. Texto: Antes da ONG ARONG existir, havia uma menina cheia de perguntas, coragem e vontade de transformar o mundo ao seu redor. O livro é narrado em Libras e conta com audiodescrição, Braille, Comunicação Aumentativa e Alternativa e linguagem simplificada, além de um Guia Prático de Inclusão.",
+};
+
+// ---------------------------------------------------------------------------
+// MODOS DE ACESSO — espelham os QR codes do livro físico (livro inteiro)
+//   type: 'youtube' (embed) | 'simple' (leitor de texto na tela) | 'pdf' | 'link'
+// ---------------------------------------------------------------------------
+export const ACCESS_MODES = [
+  { key: "audiolivro",     icon: "🔊", label: "Audiolivro",
+    desc: "Narração completa do livro em áudio.",
+    type: "audio", src: "assets/audio/audiolivro.mp3", youtubeId: "gu6BcrX6POA" },
+
+  { key: "audiodescricao", icon: "👁️", label: "Áudio com audiodescrição",
+    desc: "Narração que também descreve as ilustrações — para quem não enxerga.",
+    type: "audio", src: "assets/audio/audiodescricao.mp3", youtubeId: "gfdhPw-AuKU" },
+
+  { key: "libras",         icon: "🤟", label: "Libras",
+    desc: "Vídeo do livro com intérprete de Língua Brasileira de Sinais.",
+    type: "localvideo", src: "assets/video/libras.mp4", youtubeId: "ksQqd6suIyw" },
+
+  { key: "linguagemSimples", icon: "📖", label: "Linguagem simples",
+    desc: "História contada com texto mais curto e direto, na tela.",
+    type: "simple", youtubeId: "4foeRCmB2TQ" },
+
+  { key: "caa",            icon: "🔣", label: "CAA — pictogramas",
+    desc: "Prancha de Comunicação Aumentativa e Alternativa (os pictogramas também estão em cada página).",
+    type: "pdf", url: "assets/caa/comunicacao-caa.pdf" },
+];
+
+export const PURCHASE_URL = "https://editorasaberonline.com.br/produto/deise-em-tudo-aqui-ja-foi-um-sonho/";
+
+// Vídeo animado (AR no web) — PLACEHOLDER por enquanto; trocar pelos vídeos finais.
+export const AR_VIDEO = {
+  src: "assets/ar/animacao-placeholder.mp4",
+  label: "Animação do livro",
+};
+
+// ---------------------------------------------------------------------------
+// TEXTO EM LINGUAGEM SIMPLES (modo de leitura na tela) — transcrição oficial
+// ---------------------------------------------------------------------------
+export const SIMPLE_TEXT = {
+  title: "Deise em… Tudo aqui já foi um sonho!",
+  subtitle: "Uma história de amor, coragem e esperança. Nunca desista dos seus sonhos.",
+  paragraphs: [
+    "Essa é a história de uma menina chamada Deise. Deise mora em um lugar com ruas pequenas e simples. A vida nem sempre era fácil, mas era muito divertida.",
+    "Deise mora com os seus irmãos. Durante o dia brincam muito nas ruas do bairro. Às vezes falta dinheiro, mas nunca falta amor. Quem tem amor tem tudo.",
+    "Deise era uma menina muito especial. Ela sabia olhar ao redor com carinho. Enquanto muitos viam problemas e tristeza, Deise enxergava possibilidades e sonhos.",
+    "E no coração de Deise morava uma pergunta: por que os adultos esquecem dos seus sonhos? Ela se perguntava: Ei, sonho, aonde você vai com tanta pressa? O que eu vou fazer para não deixar o meu sonho morrer? Por onde eu começo?",
+    "Deise sonhava com um lugar mágico, cheio de livros, música, dança e esperança. Algumas pessoas diziam: isso é grande demais para você. Mas Deise guardava seu sonho com muito cuidado. Ela acreditava, e isso era o mais importante.",
+    "O tempo passou. Deise cresceu. Ela trabalhou muito e ajudou sua família, aprendeu coisas novas e, mesmo cansada, nunca desistiu dos seus sonhos. Cada dificuldade a tornava mais forte.",
+    "Chegou o grande momento. Deise decidiu: não bastava só imaginar, era hora de construir. Com muita determinação, ela criou um espaço especial: a ARONG. O que era só um desejo virou um lugar para toda a comunidade.",
+    "Hoje, quando você entra na ARONG, percebe que tudo ali já foi um sonho. Onde antes era silêncio, agora tem o som do saxofone e do teclado. Onde antes tinha tristeza, agora tem crianças com brilho nos olhos.",
+    "Na ARONG, as crianças aprenderam a ler, a dançar, a lutar, a cantar e a acreditar em si mesmas. Deise virou uma fada madrinha.",
+    "Havia uma menina tímida. Ela achava que a beleza e a arte não eram para ela. Plim! No balé, a menina descobriu que tinha direito de ser feliz. Ela aprendeu que podia voar para qualquer palco que quisesse.",
+    "Havia também um menino, e ninguém ouvia a voz dele. Plim! A fada madrinha chegou e mostrou que a arte também combate a violência. A voz do menino se tornou forte. Ele inspirou outros jovens da comunidade.",
+    "Deise também criou um cantinho cheio de livros. Cada livro é a semente de um sonho — como este livro que você está lendo agora. Ele foi escrito para te lembrar de nunca desistir dos seus sonhos.",
+    "Um sonho que nasce para fazer o bem pode se tornar a esperança de muitas pessoas. Os anos passaram e o amor continua alcançando vidas até hoje.",
+    "Você pode visitar a ARONG se quiser. Lá você vai ver que os sonhos podem virar realidade e que fadas madrinhas podem existir de verdade.",
+    "Tudo começou com uma menina que decidiu não desistir. A história de Deise foi escrita para te lembrar que tudo é possível. Acredite, persista e sonhe. Um dia você também vai olhar para trás e dizer: tudo que eu construí também já foi um sonho.",
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// PÁGINAS DO MIOLO (38) — id + imagem. O alt usa PAGE_TEXTS quando houver.
+// ---------------------------------------------------------------------------
+export const PAGES = Array.from({ length: 38 }, (_, i) => {
+  const id = i + 1;
+  return { id, image: `assets/pages/page-${String(id).padStart(2, "0")}.jpg` };
+});
+
+// ---------------------------------------------------------------------------
+// TEXTO DA NARRAÇÃO POR PÁGINA — usado para alt-text e fallback de voz (TTS).
+// Confirmado a partir do PDF/áudio. Páginas só de ilustração ficam sem texto.
+// TODO: completar as páginas restantes conferindo o PDF página a página.
+// ---------------------------------------------------------------------------
+export const PAGE_TEXTS = {
+  4:  "Esta é a história de uma menina chamada Deise, que vivia em uma comunidade de ruas apertadas e casas simples, onde a vida nem sempre era fácil, mas até que era muito divertida.",
+  5:  "Ela morava com seus irmãos, passavam o dia brincando de queimada naquelas ruelas. Seus dias eram cheios de risadas e, também, de muitos desafios.",
+  6:  "Sim, faltava dinheiro também, mas não faltava afeto. Dizem que quem tem amor, tem tudo, não é mesmo?",
+  7:  "Enquanto muitos viam apenas as dificuldades e a tristeza, ela enxergava as possibilidades e os sonhos que as pessoas acabavam esquecendo pelo caminho.",
+  8:  "E dentro do coração daquela garotinha morava uma pergunta: por que os adultos esquecem dos seus sonhos? Ei, sonho, aonde vai com tanta pressa? E você, vai ficar aí parada? Vai deixar seu sonho morrer também? Mas por onde eu começo? E se?",
+  10: "Deise imaginava um lugar mágico, repleto de livros, música, dança e, acima de tudo, esperança. Algumas pessoas diziam: isso é grande demais para você!",
+  11: "Mas Deise guardava seu sonho com a coragem e a ousadia que só quem acredita de verdade possui.",
+};
+
+// ---------------------------------------------------------------------------
+// CENAS DE REALIDADE AUMENTADA — usadas por /ar (mantidas como estão)
+// ---------------------------------------------------------------------------
 export const AR_SCENES = {
   "capa":       { pages: [1],                narration: "Toda grande transformação começa com um sonho." },
   "infancia":   { pages: [4, 5],             narration: "Esta é a história de Deise, uma menina cheia de sonhos." },
@@ -15,56 +114,4 @@ export const AR_SCENES = {
   "fada":       { pages: [19, 20, 21],       narration: "Algumas pessoas chegam como fadas madrinhas." },
   "biblioteca": { pages: [22],               narration: "Cada livro é uma semente de um novo sonho." },
   "final":      { pages: [30, 31, 32, 33],   narration: "Tudo aqui já foi um sonho. E novos sonhos ainda podem nascer." },
-};
-
-// Mapeamento página → assets
-// audio e libras: null = ainda não disponível (sem ícone no flipbook)
-// arScene: null = sem cena RA para essa página
-export const PAGES = [
-  { id: 1,  image: "assets/pages/page-01.jpg", audio: null,                       libras: null,                        arScene: "capa" },
-  { id: 2,  image: "assets/pages/page-02.jpg", audio: null,                       libras: null,                        arScene: null },
-  { id: 3,  image: "assets/pages/page-03.jpg", audio: null,                       libras: null,                        arScene: null },
-  { id: 4,  image: "assets/pages/page-04.jpg", audio: "assets/audio/page-04.mp3", libras: "assets/libras/page-04.mp4", arScene: "infancia" },
-  { id: 5,  image: "assets/pages/page-05.jpg", audio: "assets/audio/page-05.mp3", libras: "assets/libras/page-05.mp4", arScene: "infancia" },
-  { id: 6,  image: "assets/pages/page-06.jpg", audio: "assets/audio/page-06.mp3", libras: "assets/libras/page-06.mp4", arScene: null },
-  { id: 7,  image: "assets/pages/page-07.jpg", audio: "assets/audio/page-07.mp3", libras: "assets/libras/page-07.mp4", arScene: null },
-  { id: 8,  image: "assets/pages/page-08.jpg", audio: "assets/audio/page-08.mp3", libras: "assets/libras/page-08.mp4", arScene: "sonho" },
-  { id: 9,  image: "assets/pages/page-09.jpg", audio: "assets/audio/page-09.mp3", libras: "assets/libras/page-09.mp4", arScene: "sonho" },
-  { id: 10, image: "assets/pages/page-10.jpg", audio: "assets/audio/page-10.mp3", libras: "assets/libras/page-10.mp4", arScene: "sonho" },
-  { id: 11, image: "assets/pages/page-11.jpg", audio: "assets/audio/page-11.mp3", libras: "assets/libras/page-11.mp4", arScene: "coragem" },
-  { id: 12, image: "assets/pages/page-12.jpg", audio: "assets/audio/page-12.mp3", libras: "assets/libras/page-12.mp4", arScene: null },
-  { id: 13, image: "assets/pages/page-13.jpg", audio: "assets/audio/page-13.mp3", libras: "assets/libras/page-13.mp4", arScene: null },
-  { id: 14, image: "assets/pages/page-14.jpg", audio: "assets/audio/page-14.mp3", libras: "assets/libras/page-14.mp4", arScene: "arong" },
-  { id: 15, image: "assets/pages/page-15.jpg", audio: "assets/audio/page-15.mp3", libras: "assets/libras/page-15.mp4", arScene: null },
-  { id: 16, image: "assets/pages/page-16.jpg", audio: "assets/audio/page-16.mp3", libras: "assets/libras/page-16.mp4", arScene: "arte" },
-  { id: 17, image: "assets/pages/page-17.jpg", audio: "assets/audio/page-17.mp3", libras: "assets/libras/page-17.mp4", arScene: "arte" },
-  { id: 18, image: "assets/pages/page-18.jpg", audio: "assets/audio/page-18.mp3", libras: "assets/libras/page-18.mp4", arScene: "arte" },
-  { id: 19, image: "assets/pages/page-19.jpg", audio: "assets/audio/page-19.mp3", libras: "assets/libras/page-19.mp4", arScene: "fada" },
-  { id: 20, image: "assets/pages/page-20.jpg", audio: "assets/audio/page-20.mp3", libras: "assets/libras/page-20.mp4", arScene: "fada" },
-  { id: 21, image: "assets/pages/page-21.jpg", audio: "assets/audio/page-21.mp3", libras: "assets/libras/page-21.mp4", arScene: "fada" },
-  { id: 22, image: "assets/pages/page-22.jpg", audio: "assets/audio/page-22.mp3", libras: "assets/libras/page-22.mp4", arScene: "biblioteca" },
-  { id: 23, image: "assets/pages/page-23.jpg", audio: "assets/audio/page-23.mp3", libras: "assets/libras/page-23.mp4", arScene: null },
-  { id: 24, image: "assets/pages/page-24.jpg", audio: "assets/audio/page-24.mp3", libras: "assets/libras/page-24.mp4", arScene: null },
-  { id: 25, image: "assets/pages/page-25.jpg", audio: "assets/audio/page-25.mp3", libras: "assets/libras/page-25.mp4", arScene: null },
-  { id: 26, image: "assets/pages/page-26.jpg", audio: "assets/audio/page-26.mp3", libras: "assets/libras/page-26.mp4", arScene: null },
-  { id: 27, image: "assets/pages/page-27.jpg", audio: "assets/audio/page-27.mp3", libras: "assets/libras/page-27.mp4", arScene: null },
-  { id: 28, image: "assets/pages/page-28.jpg", audio: "assets/audio/page-28.mp3", libras: "assets/libras/page-28.mp4", arScene: null },
-  { id: 29, image: "assets/pages/page-29.jpg", audio: "assets/audio/page-29.mp3", libras: "assets/libras/page-29.mp4", arScene: null },
-  { id: 30, image: "assets/pages/page-30.jpg", audio: "assets/audio/page-30.mp3", libras: "assets/libras/page-30.mp4", arScene: "final" },
-  { id: 31, image: "assets/pages/page-31.jpg", audio: "assets/audio/page-31.mp3", libras: "assets/libras/page-31.mp4", arScene: "final" },
-  { id: 32, image: "assets/pages/page-32.jpg", audio: "assets/audio/page-32.mp3", libras: "assets/libras/page-32.mp4", arScene: "final" },
-  { id: 33, image: "assets/pages/page-33.jpg", audio: "assets/audio/page-33.mp3", libras: "assets/libras/page-33.mp4", arScene: "final" },
-  { id: 34, image: "assets/pages/page-34.jpg", audio: null,                       libras: null,                        arScene: null },
-  { id: 35, image: "assets/pages/page-35.jpg", audio: null,                       libras: null,                        arScene: null },
-  { id: 36, image: "assets/pages/page-36.jpg", audio: null,                       libras: null,                        arScene: null },
-  { id: 37, image: "assets/pages/page-37.jpg", audio: null,                       libras: null,                        arScene: null },
-];
-
-// Textos das páginas para narração TTS e EPUB3
-// Completar com o texto completo após receber o PDF final
-export const PAGE_TEXTS = {
-  4:  "Esta é a história de uma menina chamada Deise, que vivia em uma comunidade de ruas apertadas e casas simples, onde a vida nem sempre era fácil, mas até que era muito divertida.",
-  5:  "Ela morava com seus irmãos, passavam o dia brincando de queimada naquelas ruelas. Seus dias eram cheios de risadas e, também, de muitos desafios.",
-  8:  "E dentro do coração daquela garotinha morava uma pergunta: Por que os adultos esquecem de seus sonhos? Ei, sonho, aonde vai com tanta pressa? Tá certo, você tem razão! Viviam várias perguntas. E você vai ficar aí, parada? Não vai fazer nada? Vai deixar seu sonho morrer também? Mas por onde eu começo? E se?",
-  10: "Deise imaginava um lugar mágico, repleto de livros, música, dança e, acima de tudo, esperança. Algumas pessoas diziam: Isso é grande demais para você!",
 };

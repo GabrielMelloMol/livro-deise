@@ -4,42 +4,60 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Deise em... Tudo aqui já foi um sonho!</title>
-  <meta name="description" content="Livro digital interativo inclusivo — Deise em... Tudo aqui já foi um sonho! Com Realidade Aumentada, narração em áudio e Libras.">
+  <meta name="description" content="Livro digital interativo inclusivo — Deise em... Tudo aqui já foi um sonho! Com audiolivro, audiodescrição, Libras, linguagem simples e CAA.">
   <meta property="og:title" content="Deise em... Tudo aqui já foi um sonho!">
-  <meta property="og:description" content="Livro digital interativo com Realidade Aumentada, narração e Libras.">
+  <meta property="og:description" content="Livro digital inclusivo: audiolivro, audiodescrição, Libras, linguagem simples e CAA.">
   <meta property="og:url" content="https://gabrielmellomol.github.io/livro-deise/">
   <meta name="theme-color" content="#080820">
-  <link rel="stylesheet" href="css/style.css">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Deise">
+
+  <link rel="stylesheet" href="css/style.css?v=1.0.11">
 </head>
 <body>
+
+  <!-- Pular direto para os modos de acesso (importante para leitores de tela) -->
+  <a href="#btn-access" class="skip-link">Pular para os modos de acessibilidade</a>
+
+  <!-- Região de avisos para leitor de tela -->
+  <p id="sr-status" class="sr-only" aria-live="polite" role="status"></p>
 
   <!-- Tela de carregamento -->
   <div id="loading-overlay">
     <div class="loading-box">
-      <span class="loading-star">✨</span>
+      <span class="loading-star" aria-hidden="true">✨</span>
       <p>Abrindo o livro mágico...</p>
       <div class="loading-bar"><div id="loading-fill"></div></div>
     </div>
   </div>
 
   <div id="app">
-    <!-- Título -->
+    <!-- Cabeçalho -->
     <header id="book-title">
       <h1>Deise em… <span>Tudo aqui já foi um sonho!</span></h1>
+      <button id="btn-access" class="btn-access" type="button"
+              aria-haspopup="dialog" aria-expanded="false" aria-controls="access-panel">
+        <span aria-hidden="true">♿</span> Acessibilidade
+      </button>
     </header>
 
-    <div id="flipbook-container">
-      <div id="flipbook"></div>
-    </div>
+    <main id="flipbook-container">
+      <div id="flipbook" role="group" aria-label="Páginas do livro. Use as setas do teclado para virar."></div>
+    </main>
 
     <div id="controls">
       <button id="btn-prev" aria-label="Página anterior">&#8592;</button>
-      <span id="page-indicator"></span>
+      <span id="page-indicator" aria-hidden="true"></span>
       <button id="btn-next" aria-label="Próxima página">&#8594;</button>
 
       <div id="zoom-controls">
         <button id="btn-zoom-out" aria-label="Diminuir zoom">&#8722;</button>
-        <span id="zoom-indicator">100%</span>
+        <span id="zoom-indicator" aria-hidden="true">100%</span>
         <button id="btn-zoom-in" aria-label="Aumentar zoom">&#43;</button>
       </div>
 
@@ -47,19 +65,76 @@
         <button id="btn-fullscreen" aria-label="Tela cheia" title="Tela cheia">&#x26F6;</button>
       </div>
     </div>
+  </div>
 
-    <!-- Overlay Libras -->
-    <div id="overlay-libras" class="overlay hidden" role="dialog" aria-label="Vídeo em Libras">
-      <div class="overlay-content">
-        <button class="overlay-close" aria-label="Fechar">&#10005;</button>
-        <video id="video-libras" controls playsinline></video>
+  <!-- ===================== Painel de Acessibilidade ===================== -->
+  <div id="access-panel" class="access-panel hidden" role="dialog" aria-modal="true" aria-labelledby="access-title">
+    <div class="access-box">
+      <button class="overlay-close" aria-label="Fechar modos de acessibilidade">&#10005;</button>
+      <h2 id="access-title">Modos de leitura e acessibilidade</h2>
+      <p class="access-intro">Escolha como você quer aproveitar o livro:</p>
+      <ul id="access-list" class="access-list"></ul>
+      <a id="access-purchase" class="access-purchase" href="#" target="_blank" rel="noopener">
+        <span aria-hidden="true">🛒</span> Comprar o livro físico
+      </a>
+    </div>
+  </div>
+
+  <!-- ===================== Overlay de vídeo (YouTube) ===================== -->
+  <div id="overlay-video" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="video-title">
+    <div class="overlay-content overlay-video-content">
+      <div class="overlay-bar">
+        <h2 id="video-title">Vídeo</h2>
+        <button class="overlay-close" aria-label="Fechar vídeo">&#10005;</button>
+      </div>
+      <div class="video-wrap">
+        <iframe id="video-frame" title="Reprodutor de vídeo" allow="autoplay; encrypted-media; fullscreen"
+                allowfullscreen frameborder="0"></iframe>
       </div>
     </div>
+  </div>
 
-    <!-- Overlay áudio -->
-    <div id="overlay-audio" class="overlay-audio hidden">
-      <button id="btn-audio-close" aria-label="Parar narração">&#10005;</button>
-      <span>&#9654; Narrando...</span>
+  <!-- ===================== Overlay de texto simples ===================== -->
+  <div id="overlay-simple" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="simple-title-bar">
+    <div class="overlay-content overlay-simple-content">
+      <div class="overlay-bar">
+        <h2 id="simple-title-bar">Linguagem simples</h2>
+        <button id="btn-simple-read" class="btn-read" type="button" aria-pressed="false">🔊 Ouvir em voz alta</button>
+        <button class="overlay-close" aria-label="Fechar leitura">&#10005;</button>
+      </div>
+      <div id="simple-body" class="simple-body"></div>
+    </div>
+  </div>
+
+  <!-- ===================== Overlay de vídeo local (Libras / animação) ===================== -->
+  <div id="overlay-arvideo" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="arvideo-title">
+    <div class="overlay-content overlay-video-content">
+      <div class="overlay-bar">
+        <h2 id="arvideo-title">Vídeo</h2>
+        <button class="overlay-close" aria-label="Fechar vídeo">&#10005;</button>
+      </div>
+      <div class="video-wrap">
+        <video id="ar-video" playsinline controls></video>
+      </div>
+      <div class="video-yt-wrap">
+        <a id="arvideo-yt" class="audio-yt hidden" target="_blank" rel="noopener">Ver no YouTube</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== Overlay de áudio (audiolivro / audiodescrição local) ===================== -->
+  <div id="overlay-audioplayer" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="audioplayer-title">
+    <div class="overlay-content overlay-audioplayer-content">
+      <div class="overlay-bar">
+        <h2 id="audioplayer-title">Audiolivro</h2>
+        <button class="overlay-close" aria-label="Fechar áudio">&#10005;</button>
+      </div>
+      <div class="audio-body">
+        <img class="audio-cover" src="assets/icons/icon-512.png" alt="" aria-hidden="true">
+        <p id="audioplayer-desc" class="audio-desc"></p>
+        <audio id="audio-player" controls preload="none"></audio>
+        <a id="audioplayer-yt" class="audio-yt hidden" target="_blank" rel="noopener">Ver no YouTube</a>
+      </div>
     </div>
   </div>
 
@@ -68,6 +143,15 @@
 
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
-  <script type="module" src="js/flipbook.js"></script>
+  <script type="module" src="js/flipbook.js?v=1.0.11"></script>
+
+  <!-- PWA: registra o service worker (leitura offline) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>

@@ -1,0 +1,212 @@
+// js/access.js
+// Menu de acessibilidade: audiolivro, audiodescrição, Libras, linguagem simples e CAA.
+// Foco em uso por teclado e leitor de tela (foco preso no diálogo, Escape fecha, foco volta).
+import { ACCESS_MODES, PURCHASE_URL, SIMPLE_TEXT, AR_VIDEO } from './config.js?v=1.0.11';
+
+const FOCUSABLE = 'a[href], button:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])';
+let lastFocused = null;
+
+function visibleFocusables(container) {
+  return [...container.querySelectorAll(FOCUSABLE)].filter(el => el.offsetParent !== null);
+}
+
+function trapFocus(e, container) {
+  const items = visibleFocusables(container);
+  if (!items.length) return;
+  const first = items[0], last = items[items.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+
+export function initAccess() {
+  const trigger       = document.getElementById('btn-access');
+  const panel         = document.getElementById('access-panel');
+  const list          = document.getElementById('access-list');
+  const purchase      = document.getElementById('access-purchase');
+  const overlayVideo  = document.getElementById('overlay-video');
+  const videoFrame    = document.getElementById('video-frame');
+  const videoTitle    = document.getElementById('video-title');
+  const overlaySimple = document.getElementById('overlay-simple');
+  const simpleBody    = document.getElementById('simple-body');
+  const btnRead       = document.getElementById('btn-simple-read');
+  const overlayAr     = document.getElementById('overlay-arvideo');
+  const arVideo       = document.getElementById('ar-video');
+  const arTitle       = document.getElementById('arvideo-title');
+  const arYt          = document.getElementById('arvideo-yt');
+  const overlayAudio  = document.getElementById('overlay-audioplayer');
+  const audioPlayer   = document.getElementById('audio-player');
+  const audioTitle    = document.getElementById('audioplayer-title');
+  const audioDesc     = document.getElementById('audioplayer-desc');
+  const audioYt       = document.getElementById('audioplayer-yt');
+  if (!trigger || !panel) return;
+
+  // ---- monta os itens do menu a partir do config ----
+  ACCESS_MODES.forEach(mode => {
+    const li  = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'access-item';
+    btn.innerHTML =
+      `<span class="ai-icon" aria-hidden="true">${mode.icon}</span>` +
+      `<span class="ai-text"><span class="ai-label">${mode.label}</span>` +
+      `<span class="ai-desc">${mode.desc}</span></span>`;
+    btn.addEventListener('click', () => { closePanel(); openMode(mode); });
+    li.appendChild(btn);
+    list.appendChild(li);
+  });
+  if (purchase) purchase.href = PURCHASE_URL;
+
+  // ---- leitor de texto simples (conteúdo) ----
+  if (simpleBody) {
+    const sub = document.createElement('p');
+    sub.className = 'simple-sub';
+    sub.textContent = SIMPLE_TEXT.subtitle;
+    simpleBody.appendChild(sub);
+    SIMPLE_TEXT.paragraphs.forEach(t => {
+      const p = document.createElement('p');
+      p.textContent = t;
+      simpleBody.appendChild(p);
+    });
+  }
+
+  // ================= painel =================
+  function openPanel() {
+    lastFocused = document.activeElement;
+    panel.classList.remove('hidden');
+    trigger.setAttribute('aria-expanded', 'true');
+    document.addEventListener('keydown', onPanelKey);
+    const first = visibleFocusables(panel)[0];
+    if (first) first.focus();
+  }
+  function closePanel() {
+    panel.classList.add('hidden');
+    trigger.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('keydown', onPanelKey);
+    if (lastFocused) lastFocused.focus();
+  }
+  function onPanelKey(e) {
+    if (e.key === 'Escape') { e.preventDefault(); closePanel(); }
+    else if (e.key === 'Tab') trapFocus(e, panel);
+  }
+  trigger.addEventListener('click', () => {
+    panel.classList.contains('hidden') ? openPanel() : closePanel();
+  });
+  panel.addEventListener('click', e => { if (e.target === panel) closePanel(); });
+  panel.querySelector('.overlay-close').addEventListener('click', closePanel);
+
+  // ================= abrir um modo =================
+  function openMode(mode) {
+    if (mode.type === 'audio') openAudio(mode);
+    else if (mode.type === 'localvideo') openLocalVideo(mode);
+    else if (mode.type === 'youtube') openVideo(mode);
+    else if (mode.type === 'simple') openSimple();
+    else if (mode.url) window.open(mode.url, '_blank', 'noopener');
+  }
+
+  // Áudio local (audiolivro / audiodescrição) — funciona offline depois de tocar 1× online
+  function openAudio(mode) {
+    if (!overlayAudio || !audioPlayer) return;
+    lastFocused = trigger;
+    if (audioTitle) audioTitle.textContent = mode.label;
+    if (audioDesc)  audioDesc.textContent  = mode.desc || '';
+    audioPlayer.src = mode.src;
+    if (audioYt) {
+      if (mode.youtubeId) { audioYt.href = `https://youtu.be/${mode.youtubeId}`; audioYt.classList.remove('hidden'); }
+      else audioYt.classList.add('hidden');
+    }
+    overlayAudio.classList.remove('hidden');
+    document.addEventListener('keydown', onOverlayKey);
+    overlayAudio.querySelector('.overlay-close').focus();
+    audioPlayer.play().catch(() => {});
+  }
+
+  function openVideo(mode) {
+    lastFocused = trigger;
+    videoTitle.textContent = mode.label;
+    videoFrame.src = `https://www.youtube-nocookie.com/embed/${mode.youtubeId}?rel=0&autoplay=1`;
+    overlayVideo.classList.remove('hidden');
+    document.addEventListener('keydown', onOverlayKey);
+    overlayVideo.querySelector('.overlay-close').focus();
+  }
+
+  function openSimple() {
+    lastFocused = trigger;
+    overlaySimple.classList.remove('hidden');
+    document.addEventListener('keydown', onOverlayKey);
+    overlaySimple.querySelector('.overlay-close').focus();
+  }
+
+  // Vídeo local (Libras) — funciona offline depois de tocar 1× online
+  function openLocalVideo(mode) {
+    if (!overlayAr || !arVideo) return;
+    lastFocused = trigger;
+    if (arTitle) arTitle.textContent = mode.label || 'Vídeo';
+    arVideo.src = mode.src;
+    if (arYt) {
+      if (mode.youtubeId) { arYt.href = `https://youtu.be/${mode.youtubeId}`; arYt.classList.remove('hidden'); }
+      else arYt.classList.add('hidden');
+    }
+    overlayAr.classList.remove('hidden');
+    document.addEventListener('keydown', onOverlayKey);
+    overlayAr.querySelector('.overlay-close').focus();
+    arVideo.play().catch(() => {});
+  }
+
+  function closeOverlays() {
+    overlayVideo.classList.add('hidden');
+    overlaySimple.classList.add('hidden');
+    videoFrame.src = '';                       // para o vídeo do YouTube
+    if (overlayAr) {
+      overlayAr.classList.add('hidden');
+      if (arVideo) { arVideo.pause(); arVideo.removeAttribute('src'); arVideo.load(); }
+    }
+    if (overlayAudio) {
+      overlayAudio.classList.add('hidden');
+      if (audioPlayer) { audioPlayer.pause(); }
+    }
+    stopReading();
+    document.removeEventListener('keydown', onOverlayKey);
+    if (lastFocused) lastFocused.focus();
+  }
+  function onOverlayKey(e) {
+    const open = !overlayVideo.classList.contains('hidden')  ? overlayVideo
+               : !overlaySimple.classList.contains('hidden') ? overlaySimple
+               : (overlayAr && !overlayAr.classList.contains('hidden')) ? overlayAr
+               : (overlayAudio && !overlayAudio.classList.contains('hidden')) ? overlayAudio : null;
+    if (!open) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeOverlays(); }
+    else if (e.key === 'Tab') trapFocus(e, open);
+  }
+  [overlayVideo, overlaySimple, overlayAr, overlayAudio].filter(Boolean).forEach(ov => {
+    ov.querySelector('.overlay-close').addEventListener('click', closeOverlays);
+    ov.addEventListener('click', e => { if (e.target === ov) closeOverlays(); });
+  });
+
+  // ================= ler texto simples em voz alta (TTS) =================
+  let reading = false;
+  function stopReading() {
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    reading = false;
+    if (btnRead) { btnRead.setAttribute('aria-pressed', 'false'); btnRead.textContent = '🔊 Ouvir em voz alta'; }
+  }
+  if (btnRead) {
+    btnRead.addEventListener('click', () => {
+      if (!window.speechSynthesis) return;
+      if (reading || speechSynthesis.speaking) { stopReading(); return; }
+      const full = SIMPLE_TEXT.subtitle + ' ' + SIMPLE_TEXT.paragraphs.join(' ');
+      const utt = new SpeechSynthesisUtterance(full);
+      utt.lang = 'pt-BR';
+      utt.rate = 0.9;
+      utt.onend = stopReading;
+      utt.onerror = stopReading;
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utt);
+      reading = true;
+      btnRead.setAttribute('aria-pressed', 'true');
+      btnRead.textContent = '⏹ Parar leitura';
+    });
+  }
+
+  // exposto para o flipbook fechar tudo ao virar a página
+  window.__deiseCloseAccessOverlays = () => { closeOverlays(); };
+}

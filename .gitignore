@@ -2,7 +2,7 @@
 assets/libras/*.mp4
 assets/libras/*.MP4
 # assets/pages — imagens commitadas para GitHub Pages servir
-assets/audio/*.mp3
+# áudios de narração (.mp3) SÃO commitados — pequenos (~600KB total) e necessários no deploy
 assets/audio/*.wav
 assets/audio/*.ogg
 

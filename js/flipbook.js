@@ -1,6 +1,7 @@
 // js/flipbook.js
-import { PAGES, PAGE_TEXTS, SITE_URL, VERSION } from './config.js';
-import './stars.js';
+import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, VERSION } from './config.js?v=1.0.11';
+import { initAccess } from './access.js?v=1.0.11';
+import './stars.js?v=1.0.11';
 
 // ----- DOM refs -----
 const flipbook          = document.getElementById('flipbook');
@@ -8,6 +9,7 @@ const flipbookContainer = document.getElementById('flipbook-container');
 const btnPrev           = document.getElementById('btn-prev');
 const btnNext           = document.getElementById('btn-next');
 const pageIndicator     = document.getElementById('page-indicator');
+const srStatus          = document.getElementById('sr-status');
 const btnZoomIn         = document.getElementById('btn-zoom-in');
 const btnZoomOut        = document.getElementById('btn-zoom-out');
 const zoomIndicator     = document.getElementById('zoom-indicator');
@@ -17,21 +19,34 @@ const btnFullscreen     = document.getElementById('btn-fullscreen');
 const versionEl = document.getElementById('app-version');
 if (versionEl) versionEl.textContent = `v${VERSION}`;
 
+// ----- Folhas do livro: capa + 38 páginas + contracapa -----
+const leaves = [
+  { image: COVER.image, label: COVER.label, alt: COVER.alt },
+  ...PAGES.map(p => ({
+    image: p.image,
+    label: String(p.id),
+    alt: PAGE_TEXTS[p.id] ? `Página ${p.id}. ${PAGE_TEXTS[p.id]}` : `Página ${p.id} do livro. Ilustração.`,
+  })),
+  { image: BACK_COVER.image, label: BACK_COVER.label, alt: BACK_COVER.alt },
+];
+
+function leafTitle(i) {
+  const l = leaves[i].label;
+  return (l === 'Capa' || l === 'Contracapa') ? l : `Página ${l}`;
+}
+
 // ----- Rebuild limpo (remove zoom-wrapper para não herdar estado do StPageFlip) -----
 let resizeTimer;
 function rebuildFlipbook() {
   try { if (pageFlip) pageFlip.destroy(); } catch (_) {}
   pageFlip = null;
-
-  // Remove zoom-wrapper completamente para evitar estilos residuais do StPageFlip
   if (zoomWrapper) {
     if (flipbook.parentNode === zoomWrapper) flipbookContainer.appendChild(flipbook);
     zoomWrapper.remove();
     zoomWrapper = null;
   }
-
   flipbook.innerHTML = '';
-  flipbook.removeAttribute('style'); // limpa estilos inline do StPageFlip anterior
+  flipbook.removeAttribute('style');
   initFlipbook();
 }
 
@@ -42,7 +57,6 @@ if (btnFullscreen) {
     btnFullscreen.setAttribute('aria-label', inFS ? 'Sair da tela cheia' : 'Tela cheia');
     btnFullscreen.title = inFS ? 'Sair da tela cheia' : 'Tela cheia';
   };
-
   btnFullscreen.addEventListener('click', () => {
     const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
     if (!inFS) {
@@ -56,10 +70,8 @@ if (btnFullscreen) {
       else { applyFS(false); rebuildFlipbook(); }
     }
   });
-
   const onFSChange = () => {
     applyFS(!!(document.fullscreenElement || document.webkitFullscreenElement));
-    // Rebuild com as dimensões corretas do novo viewport
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(rebuildFlipbook, 150);
   };
@@ -67,68 +79,117 @@ if (btnFullscreen) {
   document.addEventListener('webkitfullscreenchange', onFSChange);
 }
 
-// ----- Zoom — RENDER_SCALE renderiza o livro a 2× e escala para baixo -----
-// Isso faz o zoom aproximar dos pixels nativos em vez de afastar deles,
-// eliminando a perda de qualidade que existe no transform: scale() puro.
+// ----- Zoom & Pan — o zoom segue o cursor; arraste para deslocar quando ampliado -----
+// RENDER_SCALE renderiza o livro a 2× e exibe a 1/2, aproximando dos pixels nativos.
 const RENDER_SCALE = 2;
-let zoomLevel   = 1;     // 1 = visual 100% (scale CSS = 1/RENDER_SCALE)
-const ZOOM_MIN  = 0.5;
-const ZOOM_MAX  = 3;
-const ZOOM_STEP = 0.25;
-let zoomWrapper = null;
-let zoomTransTimer = null;
+const BASE_SCALE   = 1 / RENDER_SCALE;
+let   zoomLevel    = 1;
+const ZOOM_MIN     = 1;
+const ZOOM_MAX     = 4;
+const ZOOM_STEP    = 0.25;
+let   zoomWrapper  = null;
+let   zoomTransTimer = null;
+let   panX = 0, panY = 0;
+let   bookW = 0, bookH = 0;
+
+const effScale = () => zoomLevel * BASE_SCALE;
+const isZoomed = () => zoomLevel > 1.001;
+
+function refreshBookSize() {
+  bookW = flipbook.offsetWidth;
+  bookH = flipbook.offsetHeight;
+}
+
+function clampPan() {
+  if (!bookW || !bookH) return;
+  const cont = flipbookContainer.getBoundingClientRect();
+  const w = bookW * effScale();
+  const h = bookH * effScale();
+  panX = w <= cont.width  ? (cont.width  - w) / 2 : Math.min(0, Math.max(cont.width  - w, panX));
+  panY = h <= cont.height ? (cont.height - h) / 2 : Math.min(0, Math.max(cont.height - h, panY));
+}
 
 function applyZoom() {
-  // CSS scale = zoomLevel / RENDER_SCALE → a 100% o livro parece normal mas renderiza a 2×
-  if (zoomWrapper) zoomWrapper.style.transform = `scale(${zoomLevel / RENDER_SCALE})`;
+  if (!zoomWrapper) return;
+  clampPan();
+  zoomWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${effScale()})`;
   zoomIndicator.textContent = `${Math.round(zoomLevel * 100)}%`;
+  flipbookContainer.style.cursor = isZoomed() ? 'grab' : 'pointer';
 }
 
-function setZoom(delta, smooth = false) {
-  zoomLevel = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomLevel + delta));
-  if (zoomWrapper) {
-    zoomWrapper.style.transition = smooth ? 'transform 0.12s ease' : 'none';
-    if (smooth) {
-      clearTimeout(zoomTransTimer);
-      zoomTransTimer = setTimeout(() => {
-        if (zoomWrapper) zoomWrapper.style.transition = 'none';
-      }, 200);
-    }
+function setSmooth(on) {
+  if (!zoomWrapper) return;
+  zoomWrapper.style.transition = on ? 'transform 0.15s ease' : 'none';
+  if (on) {
+    clearTimeout(zoomTransTimer);
+    zoomTransTimer = setTimeout(() => { if (zoomWrapper) zoomWrapper.style.transition = 'none'; }, 220);
   }
+}
+
+function zoomToPoint(newLevel, clientX, clientY, smooth = false) {
+  newLevel = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, newLevel));
+  if (Math.abs(newLevel - zoomLevel) < 0.0001) return;
+  const cont  = flipbookContainer.getBoundingClientRect();
+  const mx    = clientX - cont.left;
+  const my    = clientY - cont.top;
+  const ratio = (newLevel * BASE_SCALE) / effScale();
+  panX = mx - (mx - panX) * ratio;
+  panY = my - (my - panY) * ratio;
+  zoomLevel = newLevel;
+  setSmooth(smooth);
   applyZoom();
 }
 
+function zoomByCenter(delta) {
+  const c = flipbookContainer.getBoundingClientRect();
+  zoomToPoint(zoomLevel + delta, c.left + c.width / 2, c.top + c.height / 2, true);
+}
 function resetZoom() {
-  if (zoomWrapper) zoomWrapper.style.transition = 'transform 0.2s ease';
-  zoomLevel = 1;
-  applyZoom();
-  setTimeout(() => { if (zoomWrapper) zoomWrapper.style.transition = 'none'; }, 300);
+  const c = flipbookContainer.getBoundingClientRect();
+  zoomToPoint(1, c.left + c.width / 2, c.top + c.height / 2, true);
 }
 
-btnZoomIn.addEventListener('click',  () => setZoom(+ZOOM_STEP, true));
-btnZoomOut.addEventListener('click', () => setZoom(-ZOOM_STEP, true));
+btnZoomIn.addEventListener('click',  () => zoomByCenter(+ZOOM_STEP));
+btnZoomOut.addEventListener('click', () => zoomByCenter(-ZOOM_STEP));
 
 flipbookContainer.addEventListener('wheel', e => {
   e.preventDefault();
-  setZoom(e.deltaY < 0 ? +ZOOM_STEP : -ZOOM_STEP, false); // instantâneo
+  zoomToPoint(zoomLevel + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP), e.clientX, e.clientY, false);
 }, { passive: false });
 
-// dblclick removido — virar páginas rápido não deve resetar zoom
-
-// Clique simples: metade esquerda = voltar, metade direita = avançar
-flipbookContainer.addEventListener('click', e => {
-  if (e.target.closest('.page-icon')) return;
-  if (!pageFlip) return;
-  const rect = flipbookContainer.getBoundingClientRect();
-  if (e.clientX - rect.left < rect.width / 2) {
-    playPageTurn(); pageFlip.flipPrev();
-  } else {
-    playPageTurn(); pageFlip.flipNext();
-  }
+// ----- Arraste com o mouse para deslocar (só quando ampliado) -----
+let drag = null;
+flipbookContainer.addEventListener('mousedown', e => {
+  if (!isZoomed()) return;
+  drag = { x: e.clientX, y: e.clientY, moved: false };
+  flipbookContainer.style.cursor = 'grabbing';
+  e.preventDefault();
+});
+document.addEventListener('mousemove', e => {
+  if (!drag) return;
+  panX += e.clientX - drag.x;
+  panY += e.clientY - drag.y;
+  drag.x = e.clientX; drag.y = e.clientY;
+  drag.moved = true;
+  applyZoom();
+});
+document.addEventListener('mouseup', () => {
+  if (drag) flipbookContainer.style.cursor = isZoomed() ? 'grab' : 'pointer';
+  drag = null;
 });
 
-// ----- Touch: pinch (zoom) + swipe (virar página) — num único handler -----
-const touch = { startX: null, startY: null, pinchDist: null };
+// ----- Clique simples: vira página (esq=voltar, dir=avançar). Com zoom, vira e volta ao 100%.
+//       Arrastar (pan) não vira — o guard drag.moved cuida disso. -----
+flipbookContainer.addEventListener('click', e => {
+  if (!pageFlip) return;
+  if (drag && drag.moved) return;
+  const rect = flipbookContainer.getBoundingClientRect();
+  if (e.clientX - rect.left < rect.width / 2) flipPrev();
+  else                                        flipNext();
+});
+
+// ----- Touch: pinch (zoom no ponto médio) · 1 dedo arrasta com zoom / vira sem zoom -----
+const touch = { startX: null, startY: null, lastX: null, lastY: null, pinchDist: null, panning: false };
 
 flipbookContainer.addEventListener('touchstart', e => {
   if (e.touches.length === 2) {
@@ -136,11 +197,12 @@ flipbookContainer.addEventListener('touchstart', e => {
       e.touches[0].clientX - e.touches[1].clientX,
       e.touches[0].clientY - e.touches[1].clientY
     );
-    touch.startX = null; // cancela tracking de swipe
+    touch.startX = null;
   } else if (e.touches.length === 1) {
-    touch.startX   = e.touches[0].clientX;
-    touch.startY   = e.touches[0].clientY;
+    touch.startX = touch.lastX = e.touches[0].clientX;
+    touch.startY = touch.lastY = e.touches[0].clientY;
     touch.pinchDist = null;
+    touch.panning   = isZoomed();
   }
 }, { passive: true });
 
@@ -151,27 +213,43 @@ flipbookContainer.addEventListener('touchmove', e => {
       e.touches[0].clientX - e.touches[1].clientX,
       e.touches[0].clientY - e.touches[1].clientY
     );
-    setZoom((dist - touch.pinchDist) / 180, false);
+    const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+    const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+    zoomToPoint(zoomLevel + (dist - touch.pinchDist) / 180, midX, midY, false);
     touch.pinchDist = dist;
+  } else if (e.touches.length === 1 && touch.panning) {
+    e.preventDefault();
+    panX += e.touches[0].clientX - touch.lastX;
+    panY += e.touches[0].clientY - touch.lastY;
+    touch.lastX = e.touches[0].clientX;
+    touch.lastY = e.touches[0].clientY;
+    applyZoom();
   }
 }, { passive: false });
 
 flipbookContainer.addEventListener('touchend', e => {
   if (e.touches.length === 0) {
-    // todos os dedos levantados
-    if (touch.startX !== null && touch.pinchDist === null) {
-      const dx = e.changedTouches[0].clientX - touch.startX;
-      const dy = e.changedTouches[0].clientY - touch.startY;
+    const ex = e.changedTouches[0].clientX, ey = e.changedTouches[0].clientY;
+    const rect = flipbookContainer.getBoundingClientRect();
+    if (touch.panning) {
+      // toque curto com zoom → vira a página (e volta ao 100%)
+      if (touch.startX !== null && Math.hypot(ex - touch.startX, ey - touch.startY) < 10) {
+        (ex - rect.left < rect.width / 2) ? flipPrev() : flipNext();
+      }
+    } else if (touch.startX !== null && touch.pinchDist === null) {
+      // swipe normal (sem zoom)
+      const dx = ex - touch.startX, dy = ey - touch.startY;
       if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.4) {
-        if (dx < 0) { playPageTurn(); pageFlip.flipNext(); }
-        else         { playPageTurn(); pageFlip.flipPrev(); }
+        (dx < 0) ? flipNext() : flipPrev();
       }
     }
     touch.startX = touch.startY = touch.pinchDist = null;
+    touch.panning = false;
   } else if (e.touches.length === 1) {
-    // saiu do pinch — não vira página
     touch.pinchDist = null;
-    touch.startX    = null;
+    touch.startX = touch.lastX = e.touches[0].clientX;
+    touch.startY = touch.lastY = e.touches[0].clientY;
+    touch.panning = isZoomed();
   }
 }, { passive: true });
 
@@ -179,8 +257,7 @@ flipbookContainer.addEventListener('touchend', e => {
 function getBookSize() {
   const portrait = window.innerWidth < 700;
   if (portrait) {
-    // Modo retrato: uma página por vez, ocupa toda a tela
-    const maxH = window.innerHeight - 54;  // controles compactos
+    const maxH = window.innerHeight - 54;
     const maxW = window.innerWidth;
     return { width: maxW * RENDER_SCALE * 2, height: maxH * RENDER_SCALE };
   }
@@ -191,74 +268,29 @@ function getBookSize() {
   return { width: pageW * 2, height: pageH };
 }
 
-// ----- Botões de página: bloqueiam eventos antes que o StPageFlip os registre -----
-function blockFlip(btn) {
-  ['pointerdown', 'touchstart', 'mousedown'].forEach(evt => {
-    btn.addEventListener(evt, e => e.stopPropagation(), { passive: false });
-  });
-}
-
 // ----- Construir páginas -----
 function buildPages() {
-  PAGES.forEach(p => {
+  leaves.forEach((leaf, i) => {
     const div = document.createElement('div');
     div.className = 'page';
-    div.dataset.pageId = p.id;
-
+    div.dataset.leaf = i;
     const img = document.createElement('img');
-    img.src             = p.image;
-    img.alt             = `Página ${p.id} do livro`;
-    img.loading         = p.id <= 4 ? 'eager' : 'lazy';
-    img.draggable       = false;
+    img.src       = `${leaf.image}?v=${VERSION}`;   // versão na URL evita cache de imagem trocada
+    img.alt       = leaf.alt;
+    img.loading   = i <= 3 ? 'eager' : 'lazy';
+    img.draggable = false;
     div.appendChild(img);
-
-    if (p.libras) {
-      const btn = document.createElement('button');
-      btn.className = 'page-icon icon-libras';
-      btn.title = 'Ver em Libras';
-      btn.setAttribute('aria-label', 'Abrir vídeo em Libras');
-      btn.innerHTML = '&#128075;';
-      blockFlip(btn);
-      btn.addEventListener('click', e => { e.stopPropagation(); openLibras(p.libras); });
-      div.appendChild(btn);
-    }
-
-    if (p.audio || PAGE_TEXTS[p.id]) {
-      const btn = document.createElement('button');
-      btn.className = 'page-icon icon-audio';
-      btn.title = 'Ouvir narração';
-      btn.setAttribute('aria-label', 'Ouvir narração desta página');
-      btn.innerHTML = '&#128266;';
-      blockFlip(btn);
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        if (p.audio) playAudio(p.audio, p.id);
-        else         speakText(PAGE_TEXTS[p.id]);
-      });
-      div.appendChild(btn);
-    }
-
-    if (p.arScene) {
-      const btn = document.createElement('button');
-      btn.className = 'page-icon icon-ar';
-      btn.title = 'Experiência de Realidade Aumentada';
-      btn.setAttribute('aria-label', 'Abrir Realidade Aumentada');
-      btn.innerHTML = '&#x1F4F1;';
-      blockFlip(btn);
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        window.open(`${SITE_URL}/ar/?cena=${p.arScene}`, '_blank');
-      });
-      div.appendChild(btn);
-    }
-
     flipbook.appendChild(div);
   });
 }
 
-
 // ----- StPageFlip -----
 let pageFlip;
+
+function updateIndicator(i) {
+  pageIndicator.textContent = leafTitle(i);
+  if (srStatus) srStatus.textContent = leafTitle(i);
+}
 
 function initFlipbook() {
   const { width, height } = getBookSize();
@@ -271,6 +303,7 @@ function initFlipbook() {
     flipbookContainer.appendChild(zoomWrapper);
     zoomWrapper.appendChild(flipbook);
   }
+  zoomLevel = 1; panX = 0; panY = 0;
   applyZoom();
 
   pageFlip = new St.PageFlip(flipbook, {
@@ -289,19 +322,18 @@ function initFlipbook() {
 
   initPageTurnSound();
   pageFlip.loadFromHTML(document.querySelectorAll('.page'));
+  requestAnimationFrame(() => { refreshBookSize(); applyZoom(); });
 
   pageFlip.on('flip', e => {
-    pageIndicator.textContent = `${e.data + 1} / ${PAGES.length}`;
-    closeOverlays();
+    updateIndicator(e.data);
+    if (window.__deiseCloseAccessOverlays) window.__deiseCloseAccessOverlays();
   });
 
-  pageIndicator.textContent = `1 / ${PAGES.length}`;
-
+  updateIndicator(0);
   hideLoading();
 }
 
 // ----- Som de virada de página -----
-// Coloque assets/sounds/page-turn.mp3 para som real. Enquanto isso: síntese.
 let audioCtx     = null;
 let pageTurnSnd  = null;
 
@@ -323,9 +355,8 @@ function playPageTurn() {
     const now = audioCtx.currentTime;
     const sr  = audioCtx.sampleRate;
 
-    // Rustle: highpass noise, ataque rápido, decaimento exponencial
     const b1 = audioCtx.createBuffer(1, sr * 0.32, sr);
-    const d1  = b1.getChannelData(0);
+    const d1 = b1.getChannelData(0);
     for (let i = 0; i < d1.length; i++) {
       const t = i / sr;
       d1[i] = (Math.random() * 2 - 1) * (t < 0.025 ? t / 0.025 : Math.exp(-(t - 0.025) * 14));
@@ -335,9 +366,8 @@ function playPageTurn() {
     const g1 = audioCtx.createGain(); g1.gain.value = 0.13;
     s1.connect(hpf).connect(g1).connect(audioCtx.destination); s1.start(now);
 
-    // Thump: lowpass no final (página pousando)
     const b2 = audioCtx.createBuffer(1, sr * 0.08, sr);
-    const d2  = b2.getChannelData(0);
+    const d2 = b2.getChannelData(0);
     for (let i = 0; i < d2.length; i++) {
       d2[i] = (Math.random() * 2 - 1) * Math.exp(-(i / sr) * 60);
     }
@@ -349,72 +379,25 @@ function playPageTurn() {
 }
 
 // ----- Controles -----
-btnPrev.addEventListener('click', () => { playPageTurn(); pageFlip.flipPrev(); });
-btnNext.addEventListener('click', () => { playPageTurn(); pageFlip.flipNext(); });
+// Vira a página sempre voltando ao 100% — assim a navegação nunca fica "presa" no zoom.
+function resetZoomInstant() {
+  if (!isZoomed()) return;
+  zoomLevel = 1; panX = 0; panY = 0;
+  setSmooth(true);
+  applyZoom();
+}
+function flipPrev() { resetZoomInstant(); playPageTurn(); pageFlip.flipPrev(); }
+function flipNext() { resetZoomInstant(); playPageTurn(); pageFlip.flipNext(); }
+
+btnPrev.addEventListener('click', flipPrev);
+btnNext.addEventListener('click', flipNext);
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft')  { playPageTurn(); pageFlip.flipPrev(); }
-  if (e.key === 'ArrowRight') { playPageTurn(); pageFlip.flipNext(); }
-  if (e.key === 'Escape')     closeOverlays();
+  // não interferir quando um diálogo está aberto (eles tratam o próprio teclado)
+  if (document.querySelector('.access-panel:not(.hidden), .overlay:not(.hidden)')) return;
+  if (e.key === 'ArrowLeft')  flipPrev();
+  if (e.key === 'ArrowRight') flipNext();
 });
-
-// ----- Overlay Libras -----
-const overlayLibras = document.getElementById('overlay-libras');
-const videoLibras   = document.getElementById('video-libras');
-overlayLibras.querySelector('.overlay-close').addEventListener('click', closeLibras);
-overlayLibras.addEventListener('click', e => { if (e.target === overlayLibras) closeLibras(); });
-
-function openLibras(src) {
-  videoLibras.src = src;
-  overlayLibras.classList.remove('hidden');
-  videoLibras.play();
-}
-function closeLibras() {
-  videoLibras.pause(); videoLibras.src = '';
-  overlayLibras.classList.add('hidden');
-}
-
-// ----- Overlay Áudio + TTS -----
-let currentSound = null;
-const overlayAudio = document.getElementById('overlay-audio');
-document.getElementById('btn-audio-close').addEventListener('click', stopAudio);
-
-function playAudio(src, pageId) {
-  stopAudio();
-  currentSound = new Howl({
-    src: [src], html5: true,
-    onend:   () => { overlayAudio.classList.add('hidden'); currentSound = null; },
-    onerror: () => {
-      // MP3 não encontrado — cai no TTS se houver texto
-      currentSound = null;
-      overlayAudio.classList.add('hidden');
-      const text = PAGE_TEXTS[pageId];
-      if (text) speakText(text);
-    },
-  });
-  currentSound.play();
-  overlayAudio.classList.remove('hidden');
-}
-
-function speakText(text) {
-  if (!window.speechSynthesis || !text) return;
-  stopAudio();
-  speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'pt-BR';
-  utt.rate = 0.88;
-  utt.onstart = () => overlayAudio.classList.remove('hidden');
-  utt.onend   = () => overlayAudio.classList.add('hidden');
-  utt.onerror = () => overlayAudio.classList.add('hidden');
-  speechSynthesis.speak(utt);
-}
-
-function stopAudio() {
-  if (currentSound) { currentSound.stop(); currentSound = null; }
-  if (window.speechSynthesis) speechSynthesis.cancel();
-  overlayAudio.classList.add('hidden');
-}
-function closeOverlays() { closeLibras(); stopAudio(); }
 
 // ----- Loading screen -----
 function hideLoading() {
@@ -428,11 +411,30 @@ function hideLoading() {
   }, 500);
 }
 
-// ----- Responsividade (debounced) — fullscreen já tratado no onFSChange -----
+// ----- Responsividade (debounced) -----
 window.addEventListener('resize', () => {
   if (document.fullscreenElement || document.webkitFullscreenElement) return;
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(rebuildFlipbook, 250);
 });
 
+// ----- Pré-carregar todas as páginas em ocioso → ficam disponíveis offline (PWA) -----
+function prefetchAllPages() {
+  let i = 0;
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 300));
+  const next = () => {
+    if (i >= leaves.length) return;
+    const img = new Image();
+    img.src = `${leaves[i].image}?v=${VERSION}`;
+    i++;
+    idle(next);
+  };
+  next();
+}
+
+// ----- Inicialização -----
+initAccess();
 initFlipbook();
+
+if ('requestIdleCallback' in window) requestIdleCallback(prefetchAllPages);
+else setTimeout(prefetchAllPages, 2500);
