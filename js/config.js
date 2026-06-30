@@ -1,8 +1,8 @@
 // js/config.js
 // CONFIG CENTRAL — edite aqui para trocar assets sem mexer no código
 
-export const VERSION  = '1.0.11';
-export const SITE_URL = "https://gabrielmellomol.github.io/livro-deise";
+export const VERSION  = '1.0.16';
+export const SITE_URL = "https://livrodeise.com.br";
 
 // ---------------------------------------------------------------------------
 // CAPA / CONTRACAPA
@@ -26,23 +26,29 @@ export const BACK_COVER = {
 export const ACCESS_MODES = [
   { key: "audiolivro",     icon: "🔊", label: "Audiolivro",
     desc: "Narração completa do livro em áudio.",
-    type: "audio", src: "assets/audio/audiolivro.mp3", youtubeId: "gu6BcrX6POA" },
+    type: "audio", src: "assets/audio/audiolivro.mp3", youtubeId: "gu6BcrX6POA",
+    qrCode: "assets/qrcodes/qr-modo-audiolivro.png" },
 
   { key: "audiodescricao", icon: "👁️", label: "Áudio com audiodescrição",
     desc: "Narração que também descreve as ilustrações — para quem não enxerga.",
-    type: "audio", src: "assets/audio/audiodescricao.mp3", youtubeId: "gfdhPw-AuKU" },
+    type: "audio", src: "assets/audio/audiodescricao.mp3", youtubeId: "gfdhPw-AuKU",
+    qrCode: "assets/qrcodes/qr-modo-audiodescricao.png" },
 
   { key: "libras",         icon: "🤟", label: "Libras",
     desc: "Vídeo do livro com intérprete de Língua Brasileira de Sinais.",
-    type: "localvideo", src: "assets/video/libras.mp4", youtubeId: "ksQqd6suIyw" },
+    type: "localvideo", src: "assets/video/libras.mp4", youtubeId: "ksQqd6suIyw",
+    qrCode: "assets/qrcodes/qr-modo-libras.png" },
 
   { key: "linguagemSimples", icon: "📖", label: "Linguagem simples",
-    desc: "História contada com texto mais curto e direto, na tela.",
-    type: "simple", youtubeId: "4foeRCmB2TQ" },
+    desc: "Vídeo com a história contada em linguagem simples e acessível.",
+    type: "localvideo", src: "assets/video/linguagem-simples.mp4", youtubeId: "4foeRCmB2TQ",
+    qrCode: "assets/qrcodes/qr-modo-linguagem-simples.png" },
 
   { key: "caa",            icon: "🔣", label: "CAA — pictogramas",
     desc: "Prancha de Comunicação Aumentativa e Alternativa (os pictogramas também estão em cada página).",
-    type: "pdf", url: "assets/caa/comunicacao-caa.pdf" },
+    type: "caa", url: "assets/caa/comunicacao-caa.pdf",
+    externalUrl: "https://drive.google.com/file/d/1oMIImqPGptp_aKcwfzumfsRzgjOUmTHW/view",
+    qrCode: "assets/qrcodes/qr-modo-caa.png" },
 ];
 
 export const PURCHASE_URL = "https://editorasaberonline.com.br/produto/deise-em-tudo-aqui-ja-foi-um-sonho/";

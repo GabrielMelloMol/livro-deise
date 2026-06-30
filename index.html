@@ -7,7 +7,11 @@
   <meta name="description" content="Livro digital interativo inclusivo — Deise em... Tudo aqui já foi um sonho! Com audiolivro, audiodescrição, Libras, linguagem simples e CAA.">
   <meta property="og:title" content="Deise em... Tudo aqui já foi um sonho!">
   <meta property="og:description" content="Livro digital inclusivo: audiolivro, audiodescrição, Libras, linguagem simples e CAA.">
-  <meta property="og:url" content="https://gabrielmellomol.github.io/livro-deise/">
+  <meta property="og:url" content="https://livrodeise.com.br">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://livrodeise.com.br/assets/pages/cover.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://livrodeise.com.br/assets/pages/cover.jpg">
   <meta name="theme-color" content="#080820">
 
   <!-- PWA -->
@@ -17,7 +21,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Deise">
 
-  <link rel="stylesheet" href="css/style.css?v=1.0.11">
+  <link rel="stylesheet" href="css/style.css?v=1.0.16">
 </head>
 <body>
 
@@ -28,11 +32,19 @@
   <p id="sr-status" class="sr-only" aria-live="polite" role="status"></p>
 
   <!-- Tela de carregamento -->
-  <div id="loading-overlay">
+  <div id="loading-overlay" aria-label="Carregando o livro" role="status">
     <div class="loading-box">
-      <span class="loading-star" aria-hidden="true">✨</span>
-      <p>Abrindo o livro mágico...</p>
-      <div class="loading-bar"><div id="loading-fill"></div></div>
+      <div class="loading-cover-wrap" aria-hidden="true">
+        <img class="loading-cover" src="assets/pages/cover.jpg" alt="">
+      </div>
+      <div class="loading-text-wrap" aria-hidden="true">
+        <p class="loading-title">Deise em…</p>
+        <p class="loading-subtitle">Tudo aqui já foi um sonho!</p>
+      </div>
+      <div class="loading-progress">
+        <div class="loading-bar"><div id="loading-fill"></div></div>
+        <p class="loading-status">Preparando a magia…</p>
+      </div>
     </div>
   </div>
 
@@ -91,6 +103,12 @@
         <iframe id="video-frame" title="Reprodutor de vídeo" allow="autoplay; encrypted-media; fullscreen"
                 allowfullscreen frameborder="0"></iframe>
       </div>
+      <div class="video-yt-wrap">
+        <div id="video-qr-wrap" class="qr-mobile hidden">
+          <p>📱 Escaneie para abrir no celular</p>
+          <img id="video-qr-img" src="" alt="QR code para abrir no celular" loading="lazy">
+        </div>
+      </div>
     </div>
   </div>
 
@@ -117,7 +135,17 @@
         <video id="ar-video" playsinline controls></video>
       </div>
       <div class="video-yt-wrap">
-        <a id="arvideo-yt" class="audio-yt hidden" target="_blank" rel="noopener">Ver no YouTube</a>
+        <a id="arvideo-yt" class="audio-yt hidden" target="_blank" rel="noopener">
+          <svg aria-hidden="true" class="yt-logo" viewBox="0 0 90 64" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#FF0000" d="M88.1 10A11.4 11.4 0 0 0 80 1.8C73 0 45 0 45 0S17 0 10 1.8A11.4 11.4 0 0 0 1.9 10C0 17 0 32 0 32s0 15 1.9 22A11.4 11.4 0 0 0 10 61.8C17 63.6 45 63.6 45 63.6s28 0 35-1.8a11.4 11.4 0 0 0 8.1-8.1C90 47 90 32 90 32S90 17 88.1 10z"/>
+            <path fill="#fff" d="M36 45.5L59.3 32 36 18.5z"/>
+          </svg>
+          Ver no YouTube
+        </a>
+        <div id="arvideo-qr-wrap" class="qr-mobile hidden">
+          <p>📱 Escaneie para abrir no celular</p>
+          <img id="arvideo-qr-img" src="" alt="QR code para abrir no celular" loading="lazy">
+        </div>
       </div>
     </div>
   </div>
@@ -125,16 +153,65 @@
   <!-- ===================== Overlay de áudio (audiolivro / audiodescrição local) ===================== -->
   <div id="overlay-audioplayer" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="audioplayer-title">
     <div class="overlay-content overlay-audioplayer-content">
-      <div class="overlay-bar">
-        <h2 id="audioplayer-title">Audiolivro</h2>
+      <div class="audioplayer-header">
+        <span class="audioplayer-badge" aria-hidden="true">
+          <span class="audioplayer-badge-dot"></span>Em reprodução
+        </span>
         <button class="overlay-close" aria-label="Fechar áudio">&#10005;</button>
       </div>
       <div class="audio-body">
-        <img class="audio-cover" src="assets/icons/icon-512.png" alt="" aria-hidden="true">
-        <p id="audioplayer-desc" class="audio-desc"></p>
-        <audio id="audio-player" controls preload="none"></audio>
-        <a id="audioplayer-yt" class="audio-yt hidden" target="_blank" rel="noopener">Ver no YouTube</a>
+        <div class="audio-cover-wrap">
+          <img class="audio-cover" src="assets/pages/cover.jpg" alt="" aria-hidden="true">
+        </div>
+        <div class="audio-meta">
+          <h2 id="audioplayer-title" class="audio-title">Audiolivro</h2>
+          <p id="audioplayer-desc" class="audio-desc"></p>
+        </div>
+        <div class="audio-player-wrap">
+          <audio id="audio-player" controls preload="none"></audio>
+        </div>
+        <a id="audioplayer-yt" class="audio-yt hidden" target="_blank" rel="noopener">
+          <svg aria-hidden="true" class="yt-logo" viewBox="0 0 90 64" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#FF0000" d="M88.1 10A11.4 11.4 0 0 0 80 1.8C73 0 45 0 45 0S17 0 10 1.8A11.4 11.4 0 0 0 1.9 10C0 17 0 32 0 32s0 15 1.9 22A11.4 11.4 0 0 0 10 61.8C17 63.6 45 63.6 45 63.6s28 0 35-1.8a11.4 11.4 0 0 0 8.1-8.1C90 47 90 32 90 32S90 17 88.1 10z"/>
+            <path fill="#fff" d="M36 45.5L59.3 32 36 18.5z"/>
+          </svg>
+          Ver no YouTube
+        </a>
+        <div id="audioplayer-qr-wrap" class="qr-mobile hidden">
+          <div class="qr-mobile-text">
+            <span aria-hidden="true">📱</span>
+            <span>Escaneie para abrir no celular</span>
+          </div>
+          <img id="audioplayer-qr-img" src="" alt="QR code para abrir no celular" loading="lazy">
+        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ===================== Overlay CAA (PDF embutido) ===================== -->
+  <div id="overlay-caa" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="caa-title">
+    <div class="overlay-content overlay-caa-content">
+      <div class="overlay-bar">
+        <h2 id="caa-title">CAA — Pictogramas</h2>
+        <button class="overlay-close" aria-label="Fechar CAA">&#10005;</button>
+      </div>
+      <div class="caa-wrap">
+        <iframe id="caa-frame" src="" title="Prancha de Comunicação Aumentativa e Alternativa"></iframe>
+      </div>
+      <div class="caa-actions">
+        <a id="caa-external-btn" class="caa-btn" href="" target="_blank" rel="noopener">
+          &#8599; Abrir / Baixar PDF
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== Lightbox do QR code ===================== -->
+  <div id="overlay-qr" class="overlay hidden overlay-qr-bg" role="dialog" aria-modal="true" aria-label="QR code ampliado">
+    <div class="qr-lightbox-content">
+      <button class="overlay-close" aria-label="Fechar QR">&#10005;</button>
+      <img id="qr-lightbox-img" src="" alt="" class="qr-lightbox-img">
+      <p id="qr-lightbox-label" class="qr-lightbox-label"></p>
     </div>
   </div>
 
@@ -143,7 +220,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
-  <script type="module" src="js/flipbook.js?v=1.0.11"></script>
+  <script type="module" src="js/flipbook.js?v=1.0.16"></script>
 
   <!-- PWA: registra o service worker (leitura offline) -->
   <script>

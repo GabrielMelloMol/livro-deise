@@ -3,7 +3,7 @@
 //   • Navegação (HTML)  → rede primeiro, cai pro cache quando offline
 //   • Assets (mesma origem + CDN) → cache primeiro, busca na rede e guarda
 //   • Externos (YouTube/Drive) → não intercepta (precisam de internet)
-const VERSION = '1.0.11';
+const VERSION = '1.0.16';
 const CACHE   = `deise-${VERSION}`;
 
 const CORE = [
@@ -19,8 +19,15 @@ const CORE = [
   './assets/icons/icon-512.png',
   './assets/icons/icon-512-maskable.png',
   `./assets/pages/cover.jpg?v=${VERSION}`,
-  './assets/audio/audiolivro.mp3',    // audiolivro sempre offline (a audiodescrição cacheia ao tocar)
+  './assets/audio/audiolivro.mp3',
+  './assets/qrcodes/qr-modo-audiolivro.png',
+  './assets/qrcodes/qr-modo-audiodescricao.png',
+  './assets/qrcodes/qr-modo-libras.png',
+  './assets/qrcodes/qr-modo-linguagem-simples.png',
+  './assets/qrcodes/qr-modo-caa.png',
   './assets/caa/comunicacao-caa.pdf', // prancha CAA (2 MB) sempre offline
+  './ar.html',
+  './ar-experience.html',
   'https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js',
   'https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js',
 ];

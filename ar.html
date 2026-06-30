@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deise em… — Realidade Aumentada</title>
+  <meta name="description" content="Escolha como quer aproveitar o livro Deise em… Tudo aqui já foi um sonho!">
+  <link rel="icon" href="assets/icons/icon-192.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100svh;
+      background: radial-gradient(ellipse at 50% 110%, #0d1b3e 0%, #080820 55%, #040410 100%);
+      font-family: system-ui, -apple-system, sans-serif;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 20px;
+      gap: 32px;
+    }
+
+    /* Stars background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1.5px 1.5px at 12% 8%,  rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px   1px   at 35% 22%,  rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(2px   2px   at 62% 5%,   rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px   1px   at 80% 18%,  rgba(255,255,255,0.4) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 90% 70%,  rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px   1px   at 5%  60%,  rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px   1px   at 50% 85%,  rgba(255,255,255,0.3) 0%, transparent 100%),
+        radial-gradient(2px   2px   at 22% 45%,  rgba(255,255,255,0.4) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Header */
+    .ar-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+
+    .ar-cover-wrap { perspective: 700px; }
+    .ar-cover {
+      width: clamp(120px, 28vw, 170px);
+      border-radius: 10px;
+      display: block;
+      box-shadow: -5px 8px 32px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.08);
+      transform: rotateY(-8deg) rotateX(2deg);
+      animation: coverFloat 5s ease-in-out infinite;
+    }
+    @keyframes coverFloat {
+      0%, 100% { transform: rotateY(-8deg) rotateX(2deg) translateY(0); }
+      50%       { transform: rotateY(-8deg) rotateX(2deg) translateY(-8px); }
+    }
+
+    .ar-title {
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: clamp(1.8rem, 6vw, 2.8rem);
+      font-weight: 400;
+      text-shadow: 0 2px 20px rgba(190,160,255,0.3);
+      line-height: 1.1;
+    }
+    .ar-subtitle {
+      font-style: italic;
+      font-size: clamp(0.78rem, 2vw, 0.95rem);
+      color: rgba(255,255,255,0.45);
+      font-family: Georgia, serif;
+    }
+
+    /* Choice cards */
+    .ar-choices {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+      max-width: 380px;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (min-width: 600px) {
+      .ar-choices { flex-direction: row; max-width: 680px; }
+    }
+
+    .ar-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 28px 20px 24px;
+      border-radius: 20px;
+      text-decoration: none;
+      color: #fff;
+      text-align: center;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      cursor: pointer;
+    }
+    .ar-card:hover  { transform: translateY(-4px); }
+    .ar-card:active { transform: scale(0.98); }
+
+    .ar-card--digital {
+      background: linear-gradient(145deg, #1a2a60 0%, #0d1535 100%);
+      border: 1px solid rgba(100, 140, 255, 0.22);
+      box-shadow: 0 8px 40px rgba(0,0,80,0.4);
+    }
+    .ar-card--digital:hover {
+      box-shadow: 0 16px 56px rgba(60,100,255,0.25);
+    }
+
+    .ar-card--ar {
+      background: linear-gradient(145deg, #2a0e50 0%, #180835 100%);
+      border: 1px solid rgba(160, 100, 255, 0.28);
+      box-shadow: 0 8px 40px rgba(80,0,160,0.35);
+    }
+    .ar-card--ar:hover {
+      box-shadow: 0 16px 56px rgba(140,60,255,0.28);
+    }
+
+    .ar-card-icon {
+      font-size: 2.8rem;
+      line-height: 1;
+      filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+    }
+    .ar-card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .ar-card-desc {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.45;
+      max-width: 200px;
+    }
+
+    .ar-card--ar .ar-card-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(160, 100, 255, 0.2);
+      border: 1px solid rgba(160, 100, 255, 0.35);
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(200,160,255,0.9);
+      margin-top: 2px;
+    }
+    .ar-card--ar .ar-card-badge::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #a064ff;
+      box-shadow: 0 0 6px #a064ff;
+    }
+
+    .ar-footer {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.2);
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header class="ar-header">
+    <div class="ar-cover-wrap">
+      <img class="ar-cover" src="assets/pages/cover.jpg" alt="Capa do livro Deise em… Tudo aqui já foi um sonho!">
+    </div>
+    <h1 class="ar-title">Deise em…</h1>
+    <p class="ar-subtitle">Tudo aqui já foi um sonho!</p>
+  </header>
+
+  <main class="ar-choices">
+    <a href="/" class="ar-card ar-card--digital">
+      <span class="ar-card-icon">📖</span>
+      <span class="ar-card-title">Livro digital</span>
+      <span class="ar-card-desc">Folheie as páginas na tela do seu dispositivo</span>
+    </a>
+    <a href="ar-experience.html" class="ar-card ar-card--ar">
+      <span class="ar-card-icon">📸</span>
+      <span class="ar-card-title">Realidade Aumentada</span>
+      <span class="ar-card-badge">Novo</span>
+      <span class="ar-card-desc">Aponte a câmera para as páginas do livro físico e veja a história ganhar vida</span>
+    </a>
+  </main>
+
+  <footer class="ar-footer">livrodeise.com.br</footer>
+</body>
+</html>

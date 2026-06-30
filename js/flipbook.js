@@ -1,7 +1,7 @@
 // js/flipbook.js
-import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, VERSION } from './config.js?v=1.0.11';
-import { initAccess } from './access.js?v=1.0.11';
-import './stars.js?v=1.0.11';
+import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, VERSION } from './config.js?v=1.0.15';
+import { initAccess } from './access.js?v=1.0.15';
+import './stars.js?v=1.0.15';
 
 // ----- DOM refs -----
 const flipbook          = document.getElementById('flipbook');
@@ -331,6 +331,12 @@ function initFlipbook() {
 
   updateIndicator(0);
   hideLoading();
+
+  // Deep-link: ?page=N — abre direto numa página (ex: livrodeise.com.br?page=5)
+  const deepPage = parseInt(new URLSearchParams(location.search).get('page'), 10);
+  if (!isNaN(deepPage) && deepPage >= 1 && deepPage < leaves.length) {
+    setTimeout(() => { pageFlip.flip(deepPage); updateIndicator(deepPage); }, 700);
+  }
 }
 
 // ----- Som de virada de página -----
@@ -399,16 +405,28 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') flipNext();
 });
 
-// ----- Loading screen -----
+// ----- Loading screen — mínimo 2.8s para garantir visibilidade -----
+const _loadStart = performance.now();
+
 function hideLoading() {
-  const overlay = document.getElementById('loading-overlay');
-  const app     = document.getElementById('app');
+  const overlay  = document.getElementById('loading-overlay');
+  const fill     = document.getElementById('loading-fill');
+  const app      = document.getElementById('app');
   if (!overlay) return;
+  const elapsed   = performance.now() - _loadStart;
+  const remaining = Math.max(400, 2800 - elapsed);
+  // anima a barra até 100% ao longo do tempo restante
+  if (fill) {
+    requestAnimationFrame(() => {
+      fill.style.transition = `width ${remaining / 1000}s cubic-bezier(0.4, 0, 0.2, 1)`;
+      fill.style.width = '100%';
+    });
+  }
   setTimeout(() => {
     overlay.classList.add('done');
     if (app) app.classList.add('ready');
-    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 800);
-  }, 500);
+    setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 950);
+  }, remaining + 250);
 }
 
 // ----- Responsividade (debounced) -----

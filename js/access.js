@@ -1,7 +1,7 @@
 // js/access.js
 // Menu de acessibilidade: audiolivro, audiodescrição, Libras, linguagem simples e CAA.
 // Foco em uso por teclado e leitor de tela (foco preso no diálogo, Escape fecha, foco volta).
-import { ACCESS_MODES, PURCHASE_URL, SIMPLE_TEXT, AR_VIDEO } from './config.js?v=1.0.11';
+import { ACCESS_MODES, PURCHASE_URL, SIMPLE_TEXT } from './config.js?v=1.0.15';
 
 const FOCUSABLE = 'a[href], button:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])';
 let lastFocused = null;
@@ -38,7 +38,38 @@ export function initAccess() {
   const audioTitle    = document.getElementById('audioplayer-title');
   const audioDesc     = document.getElementById('audioplayer-desc');
   const audioYt       = document.getElementById('audioplayer-yt');
+  const audioQrWrap   = document.getElementById('audioplayer-qr-wrap');
+  const audioQrImg    = document.getElementById('audioplayer-qr-img');
+  const arVideoQrWrap = document.getElementById('arvideo-qr-wrap');
+  const arVideoQrImg  = document.getElementById('arvideo-qr-img');
+  const videoQrWrap   = document.getElementById('video-qr-wrap');
+  const videoQrImg    = document.getElementById('video-qr-img');
+  const overlayCaa    = document.getElementById('overlay-caa');
+  const caaFrame      = document.getElementById('caa-frame');
+  const caaExternalBtn = document.getElementById('caa-external-btn');
+  const overlayQr     = document.getElementById('overlay-qr');
+  const qrLightboxImg = document.getElementById('qr-lightbox-img');
+  const qrLightboxLabel = document.getElementById('qr-lightbox-label');
   if (!trigger || !panel) return;
+
+  // ---- lightbox QR: clique em qualquer imagem QR dos overlays ----
+  function openQrLightbox(src, label) {
+    if (!overlayQr || !qrLightboxImg) return;
+    qrLightboxImg.src = src;
+    qrLightboxImg.alt = label || 'QR code';
+    if (qrLightboxLabel) qrLightboxLabel.textContent = label || '';
+    overlayQr.classList.remove('hidden');
+    overlayQr.querySelector('.overlay-close').focus();
+  }
+  [audioQrImg, arVideoQrImg, videoQrImg].filter(Boolean).forEach(img => {
+    img.style.cursor = 'zoom-in';
+    img.addEventListener('click', () => { if (img.src) openQrLightbox(img.src, img.dataset.label); });
+  });
+  if (overlayQr) {
+    overlayQr.querySelector('.overlay-close').addEventListener('click', () => overlayQr.classList.add('hidden'));
+    overlayQr.addEventListener('click', e => { if (e.target === overlayQr) overlayQr.classList.add('hidden'); });
+    overlayQr.addEventListener('keydown', e => { if (e.key === 'Escape') overlayQr.classList.add('hidden'); });
+  }
 
   // ---- monta os itens do menu a partir do config ----
   ACCESS_MODES.forEach(mode => {
@@ -100,7 +131,19 @@ export function initAccess() {
     else if (mode.type === 'localvideo') openLocalVideo(mode);
     else if (mode.type === 'youtube') openVideo(mode);
     else if (mode.type === 'simple') openSimple();
+    else if (mode.type === 'caa') openCaa(mode);
     else if (mode.url) window.open(mode.url, '_blank', 'noopener');
+  }
+
+  // CAA: PDF embutido em iframe + botão externo
+  function openCaa(mode) {
+    if (!overlayCaa) return;
+    lastFocused = trigger;
+    if (caaFrame)       caaFrame.src = mode.url || '';
+    if (caaExternalBtn) caaExternalBtn.href = mode.externalUrl || mode.url || '#';
+    overlayCaa.classList.remove('hidden');
+    document.addEventListener('keydown', onOverlayKey);
+    overlayCaa.querySelector('.overlay-close').focus();
   }
 
   // Áudio local (audiolivro / audiodescrição) — funciona offline depois de tocar 1× online
@@ -114,6 +157,14 @@ export function initAccess() {
       if (mode.youtubeId) { audioYt.href = `https://youtu.be/${mode.youtubeId}`; audioYt.classList.remove('hidden'); }
       else audioYt.classList.add('hidden');
     }
+    if (audioQrImg && mode.qrCode) {
+      audioQrImg.src = mode.qrCode;
+      audioQrImg.alt = `QR code — ${mode.label}`;
+      audioQrImg.dataset.label = `${mode.label} — escaneie com o celular`;
+      audioQrWrap.classList.remove('hidden');
+    } else if (audioQrWrap) {
+      audioQrWrap.classList.add('hidden');
+    }
     overlayAudio.classList.remove('hidden');
     document.addEventListener('keydown', onOverlayKey);
     overlayAudio.querySelector('.overlay-close').focus();
@@ -124,6 +175,13 @@ export function initAccess() {
     lastFocused = trigger;
     videoTitle.textContent = mode.label;
     videoFrame.src = `https://www.youtube-nocookie.com/embed/${mode.youtubeId}?rel=0&autoplay=1`;
+    if (videoQrImg && mode.qrCode) {
+      videoQrImg.src = mode.qrCode;
+      videoQrImg.alt = `QR code para abrir ${mode.label} no celular`;
+      videoQrWrap.classList.remove('hidden');
+    } else if (videoQrWrap) {
+      videoQrWrap.classList.add('hidden');
+    }
     overlayVideo.classList.remove('hidden');
     document.addEventListener('keydown', onOverlayKey);
     overlayVideo.querySelector('.overlay-close').focus();
@@ -146,6 +204,14 @@ export function initAccess() {
       if (mode.youtubeId) { arYt.href = `https://youtu.be/${mode.youtubeId}`; arYt.classList.remove('hidden'); }
       else arYt.classList.add('hidden');
     }
+    if (arVideoQrImg && mode.qrCode) {
+      arVideoQrImg.src = mode.qrCode;
+      arVideoQrImg.alt = `QR code — ${mode.label}`;
+      arVideoQrImg.dataset.label = `${mode.label} — escaneie com o celular`;
+      arVideoQrWrap.classList.remove('hidden');
+    } else if (arVideoQrWrap) {
+      arVideoQrWrap.classList.add('hidden');
+    }
     overlayAr.classList.remove('hidden');
     document.addEventListener('keydown', onOverlayKey);
     overlayAr.querySelector('.overlay-close').focus();
@@ -155,7 +221,7 @@ export function initAccess() {
   function closeOverlays() {
     overlayVideo.classList.add('hidden');
     overlaySimple.classList.add('hidden');
-    videoFrame.src = '';                       // para o vídeo do YouTube
+    videoFrame.src = '';
     if (overlayAr) {
       overlayAr.classList.add('hidden');
       if (arVideo) { arVideo.pause(); arVideo.removeAttribute('src'); arVideo.load(); }
@@ -164,6 +230,10 @@ export function initAccess() {
       overlayAudio.classList.add('hidden');
       if (audioPlayer) { audioPlayer.pause(); }
     }
+    if (overlayCaa) {
+      overlayCaa.classList.add('hidden');
+      if (caaFrame) caaFrame.src = '';
+    }
     stopReading();
     document.removeEventListener('keydown', onOverlayKey);
     if (lastFocused) lastFocused.focus();
@@ -171,13 +241,14 @@ export function initAccess() {
   function onOverlayKey(e) {
     const open = !overlayVideo.classList.contains('hidden')  ? overlayVideo
                : !overlaySimple.classList.contains('hidden') ? overlaySimple
-               : (overlayAr && !overlayAr.classList.contains('hidden')) ? overlayAr
-               : (overlayAudio && !overlayAudio.classList.contains('hidden')) ? overlayAudio : null;
+               : (overlayAr    && !overlayAr.classList.contains('hidden'))    ? overlayAr
+               : (overlayAudio && !overlayAudio.classList.contains('hidden')) ? overlayAudio
+               : (overlayCaa   && !overlayCaa.classList.contains('hidden'))   ? overlayCaa : null;
     if (!open) return;
     if (e.key === 'Escape') { e.preventDefault(); closeOverlays(); }
     else if (e.key === 'Tab') trapFocus(e, open);
   }
-  [overlayVideo, overlaySimple, overlayAr, overlayAudio].filter(Boolean).forEach(ov => {
+  [overlayVideo, overlaySimple, overlayAr, overlayAudio, overlayCaa].filter(Boolean).forEach(ov => {
     ov.querySelector('.overlay-close').addEventListener('click', closeOverlays);
     ov.addEventListener('click', e => { if (e.target === ov) closeOverlays(); });
   });
@@ -209,4 +280,15 @@ export function initAccess() {
 
   // exposto para o flipbook fechar tudo ao virar a página
   window.__deiseCloseAccessOverlays = () => { closeOverlays(); };
+
+  // Deep-link via QR do livro físico: ?modo=audiolivro, ?modo=libras etc.
+  const deepModo = new URLSearchParams(location.search).get('modo');
+  if (deepModo) {
+    const slug = deepModo.toLowerCase().replace(/-/g, '');
+    const modeTarget = ACCESS_MODES.find(m =>
+      m.key.toLowerCase() === slug ||
+      m.key.toLowerCase().replace(/-/g, '') === slug
+    );
+    if (modeTarget) setTimeout(() => openMode(modeTarget), 950);
+  }
 }
