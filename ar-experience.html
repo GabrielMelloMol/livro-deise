@@ -151,6 +151,11 @@
     /* A-Frame ocupa 100% da tela */
     #ar-scene { position: fixed; inset: 0; z-index: 50; }
 
+    /* Vídeo da câmera criado pelo MindAR — garante visibilidade no iOS */
+    a-scene video,
+    a-scene canvas { display: block !important; }
+    a-scene { width: 100% !important; height: 100% !important; }
+
     /* HUD sobre a cena AR */
     #ar-hud {
       position: fixed; inset: 0; z-index: 200;
@@ -376,17 +381,16 @@
         loadingStep.textContent = 'Iniciando câmera…';
         loadingBar.style.width = '95%';
 
-        // 3. Monta cena e aguarda câmera pronta
+        // 3. Monta cena e aguarda evento arReady do MindAR (câmera ativa + tracking pronto)
         buildScene();
 
-        // Aguarda A-Frame disparar 'camera-set-active' ou timeout de 10s
         await Promise.race([
-          waitForCameraReady(),
-          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 15000)),
+          waitForArReady(),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 20000)),
         ]);
 
         loadingBar.style.width = '100%';
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(r => setTimeout(r, 200));
 
         // 4. Esconde loading e mostra HUD
         loadingScreen.style.display = 'none';
@@ -395,19 +399,24 @@
       } catch (err) {
         loadingStep.textContent = '';
         loadingError.textContent = err.message === 'timeout'
-          ? '⚠️ A câmera demorou muito. Verifique a permissão de câmera nas configurações do seu celular e tente novamente.'
-          : `⚠️ Erro ao carregar: ${err.message}. Verifique sua conexão e recarregue a página.`;
+          ? '⚠️ Câmera não iniciou. Feche outras abas com câmera, vá em Configurações → Safari → Câmera → Permitir, e recarregue.'
+          : `⚠️ Erro: ${err.message}. Recarregue a página.`;
         loadingError.style.display = 'block';
         document.querySelector('.ar-loading-spinner').style.display = 'none';
       }
     }
 
-    function waitForCameraReady() {
-      return new Promise(resolve => {
-        // MindAR dispara 'arReady' quando a câmera está ativa
-        document.addEventListener('camera-set-active', resolve, { once: true });
-        // Fallback: A-Frame 'renderstart' também indica que a câmera começou
-        document.addEventListener('renderstart', resolve, { once: true });
+    function waitForArReady() {
+      return new Promise((resolve, reject) => {
+        // MindAR dispara 'arReady' na cena quando câmera + tracking estão prontos
+        const onReady = () => { sceneEl && sceneEl.removeEventListener('arError', onError); resolve(); };
+        const onError = (e) => { sceneEl && sceneEl.removeEventListener('arReady', onReady); reject(new Error(e.detail || 'AR error')); };
+        // Aguarda sceneEl ser criado pelo buildScene antes de attachar eventos
+        setTimeout(() => {
+          if (!sceneEl) { resolve(); return; }
+          sceneEl.addEventListener('arReady', onReady, { once: true });
+          sceneEl.addEventListener('arError', onError, { once: true });
+        }, 100);
       });
     }
 
@@ -522,7 +531,8 @@
       scene.setAttribute('renderer', 'colorManagement: true; physicallyCorrectLights: true');
       scene.setAttribute('vr-mode-ui', 'enabled: false');
       scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-      scene.style.cssText = 'position:fixed;inset:0;z-index:50;';
+      scene.setAttribute('embedded', '');
+      scene.style.cssText = 'position:fixed;inset:0;z-index:50;width:100%;height:100%;';
 
       // Câmera (fixa — MindAR controla posição)
       const cam = document.createElement('a-camera');
