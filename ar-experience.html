@@ -83,6 +83,45 @@
     }
     .ar-btn--secondary:hover { background: rgba(255,255,255,0.1); }
 
+    /* Tela de loading dos scripts ----------------------------------- */
+    #ar-loading-screen {
+      position: fixed; inset: 0; z-index: 150;
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      gap: 20px; padding: 32px 24px; text-align: center;
+      background: radial-gradient(ellipse at 50% 110%, #0d1b3e 0%, #080820 55%, #040410 100%);
+    }
+    .ar-loading-spinner {
+      width: 52px; height: 52px;
+      border: 3px solid rgba(160,100,255,0.2);
+      border-top-color: #a060ff;
+      border-radius: 50%;
+      animation: arSpin 0.8s linear infinite;
+    }
+    @keyframes arSpin { to { transform: rotate(360deg); } }
+    .ar-loading-title { font-size: 1rem; font-weight: 700; color: #fff; }
+    .ar-loading-step  { font-size: 0.82rem; color: rgba(255,255,255,0.45); min-height: 1.2em; }
+    .ar-loading-bar-outer {
+      width: min(280px, 80vw);
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .ar-loading-bar-inner {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #7b2fbe, #c060ff);
+      border-radius: 999px;
+      transition: width 0.4s ease;
+    }
+    .ar-loading-error {
+      font-size: 0.82rem;
+      color: #ff7070;
+      max-width: 280px;
+      line-height: 1.5;
+      display: none;
+    }
+
     /* Erro de setup (sem targets.mind) ------------------------------ */
     #ar-setup-screen {
       position: fixed; inset: 0; z-index: 100;
@@ -225,6 +264,17 @@
     </div>
   </div>
 
+  <!-- ===================== Tela de loading dos scripts ===================== -->
+  <div id="ar-loading-screen">
+    <div class="ar-loading-spinner"></div>
+    <p class="ar-loading-title">Preparando a câmera…</p>
+    <p class="ar-loading-step" id="ar-loading-step">Iniciando…</p>
+    <div class="ar-loading-bar-outer">
+      <div class="ar-loading-bar-inner" id="ar-loading-bar"></div>
+    </div>
+    <p class="ar-loading-error" id="ar-loading-error"></p>
+  </div>
+
   <!-- ===================== Tela de setup necessário ===================== -->
   <div id="ar-setup-screen">
     <div class="ar-setup-icon">⚙️</div>
@@ -273,10 +323,30 @@
     const startBtn    = document.getElementById('ar-start-btn');
     const container   = document.getElementById('ar-scene-container');
 
+    const loadingScreen = document.getElementById('ar-loading-screen');
+    const loadingStep   = document.getElementById('ar-loading-step');
+    const loadingBar    = document.getElementById('ar-loading-bar');
+    const loadingError  = document.getElementById('ar-loading-error');
+
+    // Pré-carrega os scripts CDN assim que a página abre (silencioso)
+    const SCRIPTS = [
+      { src: 'https://cdn.jsdelivr.net/npm/meshoptimizer@0.22.0/meshopt_decoder.js', label: 'Decodificador 3D…',    pct: 20 },
+      { src: 'https://cdn.jsdelivr.net/npm/aframe@1.5.0/dist/aframe.min.js',          label: 'Motor de realidade…',  pct: 60 },
+      { src: 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js', label: 'Rastreamento AR…', pct: 90 },
+    ];
+    const preloaded = {};
+    SCRIPTS.forEach(({ src }) => {
+      const link = document.createElement('link');
+      link.rel  = 'preload';
+      link.as   = 'script';
+      link.href = src;
+      document.head.appendChild(link);
+    });
+
     startBtn.addEventListener('click', initAR);
 
     async function initAR() {
-      // 1. Verifica se targets.mind existe antes de carregar os scripts pesados
+      // 1. Verifica se targets.mind existe
       try {
         const r = await fetch('assets/ar/targets.mind', { method: 'HEAD' });
         if (!r.ok) throw new Error('not found');
@@ -286,26 +356,59 @@
         return;
       }
 
-      // 2. Carrega MeshoptDecoder → A-Frame → MindAR em ordem (dependências)
-      startBtn.disabled = true;
-      startBtn.textContent = 'Carregando…';
-
-      // MeshoptDecoder precisa estar disponível ANTES de A-Frame carregar os GLBs
-      await loadScript('https://cdn.jsdelivr.net/npm/meshoptimizer@0.22.0/meshopt_decoder.js');
-      await loadScript('https://cdn.jsdelivr.net/npm/aframe@1.5.0/dist/aframe.min.js');
-      await loadScript('https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js');
-
-      // Injeta decoder no THREE usado pelo A-Frame
-      if (window.THREE && window.MeshoptDecoder) {
-        window.THREE.MeshoptDecoder = window.MeshoptDecoder;
-      }
-
-      // 3. Monta a cena A-Frame dinamicamente
-      buildScene();
-
-      // 4. Esconde tela inicial e mostra HUD
+      // 2. Mostra tela de loading com progresso
       startScreen.style.display = 'none';
-      hud.style.display = 'block';
+      loadingScreen.style.display = 'flex';
+      loadingBar.style.width = '5%';
+
+      try {
+        for (const { src, label, pct } of SCRIPTS) {
+          loadingStep.textContent = label;
+          await loadScript(src);
+          loadingBar.style.width = pct + '%';
+        }
+
+        // Injeta decoder no THREE usado pelo A-Frame
+        if (window.THREE && window.MeshoptDecoder) {
+          window.THREE.MeshoptDecoder = window.MeshoptDecoder;
+        }
+
+        loadingStep.textContent = 'Iniciando câmera…';
+        loadingBar.style.width = '95%';
+
+        // 3. Monta cena e aguarda câmera pronta
+        buildScene();
+
+        // Aguarda A-Frame disparar 'camera-set-active' ou timeout de 10s
+        await Promise.race([
+          waitForCameraReady(),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 15000)),
+        ]);
+
+        loadingBar.style.width = '100%';
+        await new Promise(r => setTimeout(r, 300));
+
+        // 4. Esconde loading e mostra HUD
+        loadingScreen.style.display = 'none';
+        hud.style.display = 'block';
+
+      } catch (err) {
+        loadingStep.textContent = '';
+        loadingError.textContent = err.message === 'timeout'
+          ? '⚠️ A câmera demorou muito. Verifique a permissão de câmera nas configurações do seu celular e tente novamente.'
+          : `⚠️ Erro ao carregar: ${err.message}. Verifique sua conexão e recarregue a página.`;
+        loadingError.style.display = 'block';
+        document.querySelector('.ar-loading-spinner').style.display = 'none';
+      }
+    }
+
+    function waitForCameraReady() {
+      return new Promise(resolve => {
+        // MindAR dispara 'arReady' quando a câmera está ativa
+        document.addEventListener('camera-set-active', resolve, { once: true });
+        // Fallback: A-Frame 'renderstart' também indica que a câmera começou
+        document.addEventListener('renderstart', resolve, { once: true });
+      });
     }
 
     function loadScript(src) {
@@ -314,7 +417,7 @@
         const s = document.createElement('script');
         s.src = src;
         s.onload = resolve;
-        s.onerror = reject;
+        s.onerror = () => reject(new Error(`Falha ao carregar ${src.split('/').pop()}`));
         document.head.appendChild(s);
       });
     }
