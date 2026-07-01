@@ -11,6 +11,9 @@ assets/markers/*.fset
 assets/markers/*.fset3
 assets/markers/*.iset
 
+# Node (ferramentas de build dos modelos AR — não vão pro deploy)
+node_modules/
+
 # Python
 __pycache__/
 *.pyc

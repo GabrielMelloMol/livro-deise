@@ -5,585 +5,302 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>AR — Deise em… Tudo aqui já foi um sonho!</title>
   <link rel="icon" href="assets/icons/icon-192.png">
+
+  <!-- A-Frame 1.4.2 (compatível com MindAR 1.2.5; a 1.5.0 quebra o anchor) -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* SEM background opaco no body: o vídeo da câmera fica no fundo e um fundo
+       opaco aqui o cobre → tela preta. (No teste que funcionou o body não tinha
+       fundo.) A intro tem o próprio gradiente, então não há flash branco. */
+    html, body { height: 100%; overflow: hidden; background: transparent; font-family: system-ui, -apple-system, sans-serif; color: #fff; }
 
-    html, body { height: 100%; overflow: hidden; background: #000; font-family: system-ui, -apple-system, sans-serif; color: #fff; }
-
-    /* Tela inicial -------------------------------------------------- */
-    #ar-start-screen {
-      position: fixed; inset: 0; z-index: 100;
+    /* Intro: some quando a câmera fica pronta -------------------------- */
+    #ar-intro {
+      position: fixed; inset: 0; z-index: 300;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 28px; padding: 32px 24px;
+      gap: 22px; padding: 32px 24px; text-align: center;
       background: radial-gradient(ellipse at 50% 110%, #0d1b3e 0%, #080820 55%, #040410 100%);
+      transition: opacity 0.5s ease;
     }
-    .ar-start-cover-wrap { perspective: 600px; }
-    .ar-start-cover {
-      width: clamp(100px, 22vw, 140px);
-      border-radius: 8px;
-      display: block;
+    #ar-intro.hide { opacity: 0; pointer-events: none; }
+    .ar-intro-cover {
+      width: clamp(100px, 24vw, 150px); border-radius: 8px;
       box-shadow: -4px 6px 28px rgba(0,0,0,0.85), 0 0 0 1px rgba(255,255,255,0.06);
-      transform: rotateY(-8deg) rotateX(2deg);
-      animation: arCoverFloat 5s ease-in-out infinite;
+      transform: rotateY(-8deg);
     }
-    @keyframes arCoverFloat {
-      0%, 100% { transform: rotateY(-8deg) rotateX(2deg) translateY(0); }
-      50%       { transform: rotateY(-8deg) rotateX(2deg) translateY(-7px); }
-    }
-    .ar-start-header { text-align: center; }
-    .ar-start-header h1 {
-      font-family: Georgia, serif;
-      font-style: italic;
-      font-size: clamp(1.5rem, 5vw, 2.2rem);
-      font-weight: 400;
-      margin-bottom: 6px;
-    }
-    .ar-start-header p { color: rgba(255,255,255,0.5); font-size: 0.88rem; line-height: 1.5; max-width: 280px; margin: 0 auto; }
-
-    .ar-steps {
-      display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px;
-    }
-    .ar-step {
-      display: flex; align-items: center; gap: 12px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 0.83rem; color: rgba(255,255,255,0.7);
-    }
-    .ar-step-num {
-      width: 24px; height: 24px;
-      background: rgba(160,100,255,0.25);
-      border: 1px solid rgba(160,100,255,0.4);
-      border-radius: 50%;
-      display: grid; place-items: center;
-      font-size: 0.72rem; font-weight: 700;
-      flex-shrink: 0; color: #c080ff;
-    }
-
-    .ar-btn-group { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
-    .ar-btn {
-      width: 100%;
-      padding: 14px 20px;
-      border: none; border-radius: 14px;
-      font-size: 0.95rem; font-weight: 700;
-      cursor: pointer; transition: transform 0.14s ease, opacity 0.14s ease;
-    }
-    .ar-btn:active { transform: scale(0.97); }
-    .ar-btn--primary {
-      background: linear-gradient(135deg, #7b2fbe, #a040d0);
-      color: #fff;
-      box-shadow: 0 8px 28px rgba(120,50,200,0.4);
-    }
-    .ar-btn--primary:hover { opacity: 0.9; }
-    .ar-btn--secondary {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.65);
-    }
-    .ar-btn--secondary:hover { background: rgba(255,255,255,0.1); }
-
-    /* Tela de loading dos scripts ----------------------------------- */
-    #ar-loading-screen {
-      position: fixed; inset: 0; z-index: 150;
-      display: none; flex-direction: column; align-items: center; justify-content: center;
-      gap: 20px; padding: 32px 24px; text-align: center;
-      background: radial-gradient(ellipse at 50% 110%, #0d1b3e 0%, #080820 55%, #040410 100%);
-    }
-    .ar-loading-spinner {
-      width: 52px; height: 52px;
-      border: 3px solid rgba(160,100,255,0.2);
-      border-top-color: #a060ff;
-      border-radius: 50%;
-      animation: arSpin 0.8s linear infinite;
+    .ar-intro h1 { font-family: Georgia, serif; font-style: italic; font-weight: 400; font-size: clamp(1.4rem, 5vw, 2rem); }
+    .ar-intro p { color: rgba(255,255,255,0.55); font-size: 0.9rem; line-height: 1.5; max-width: 280px; }
+    .ar-spinner {
+      width: 46px; height: 46px; border: 3px solid rgba(160,100,255,0.2);
+      border-top-color: #a060ff; border-radius: 50%; animation: arSpin 0.8s linear infinite;
     }
     @keyframes arSpin { to { transform: rotate(360deg); } }
-    .ar-loading-title { font-size: 1rem; font-weight: 700; color: #fff; }
-    .ar-loading-step  { font-size: 0.82rem; color: rgba(255,255,255,0.45); min-height: 1.2em; }
-    .ar-loading-bar-outer {
-      width: min(280px, 80vw);
-      height: 4px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 999px;
-      overflow: hidden;
-    }
-    .ar-loading-bar-inner {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #7b2fbe, #c060ff);
-      border-radius: 999px;
-      transition: width 0.4s ease;
-    }
-    .ar-loading-error {
-      font-size: 0.82rem;
-      color: #ff7070;
-      max-width: 280px;
-      line-height: 1.5;
-      display: none;
+    .ar-intro-err { display:none; color:#ff8080; font-size:0.82rem; max-width:300px; line-height:1.5; }
+    .ar-back-link {
+      margin-top: 6px; color: rgba(255,255,255,0.6); text-decoration: none; font-size: 0.85rem;
+      border: 1px solid rgba(255,255,255,0.15); border-radius: 999px; padding: 8px 18px;
     }
 
-    /* Erro de setup (sem targets.mind) ------------------------------ */
-    #ar-setup-screen {
-      position: fixed; inset: 0; z-index: 100;
-      display: none; flex-direction: column; align-items: center; justify-content: center;
-      gap: 24px; padding: 32px 24px; text-align: center;
-      background: radial-gradient(ellipse at 50% 110%, #1a0e30 0%, #0a0520 100%);
-    }
-    .ar-setup-icon { font-size: 3rem; }
-    .ar-setup-title { font-size: 1.2rem; font-weight: 700; }
-    .ar-setup-desc { color: rgba(255,255,255,0.55); font-size: 0.83rem; line-height: 1.55; max-width: 300px; }
-    .ar-setup-code {
-      background: rgba(255,255,255,0.07);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 8px;
-      padding: 12px 16px;
-      font-family: monospace; font-size: 0.78rem;
-      color: #c080ff; max-width: 340px; text-align: left;
-      line-height: 1.6;
-    }
-
-    /* Viewfinder (câmera ativa) -------------------------------------- */
-    #ar-viewfinder {
-      position: fixed; inset: 0; z-index: 50;
-      display: none;
-    }
-
-    /* A-Frame ocupa 100% da tela */
-    #ar-scene { position: fixed; inset: 0; z-index: 50; }
-
-    /* Vídeo da câmera criado pelo MindAR — garante visibilidade no iOS */
-    a-scene video,
-    a-scene canvas { display: block !important; }
-    a-scene { width: 100% !important; height: 100% !important; }
-
-    /* HUD sobre a cena AR */
-    #ar-hud {
-      position: fixed; inset: 0; z-index: 200;
-      pointer-events: none;
-      display: none;
-    }
+    /* HUD sobre a câmera ---------------------------------------------- */
+    #ar-hud { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
     .ar-back {
-      pointer-events: all;
-      position: absolute; top: 20px; left: 20px;
-      background: rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 999px;
-      padding: 8px 16px;
-      color: #fff; text-decoration: none;
-      font-size: 0.82rem; font-weight: 600;
-      display: flex; align-items: center; gap: 6px;
-      backdrop-filter: blur(8px);
+      pointer-events: all; position: absolute; top: 20px; left: 20px;
+      background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.15); border-radius: 999px;
+      padding: 8px 16px; color: #fff; text-decoration: none; font-size: 0.82rem; font-weight: 600;
+      display: flex; align-items: center; gap: 6px; backdrop-filter: blur(8px);
     }
-    .ar-back:hover { background: rgba(0,0,0,0.7); }
+    #ar-detected-badge {
+      position: absolute; top: 20px; right: 20px; display: none; align-items: center; gap: 8px;
+      background: rgba(0,200,100,0.15); border: 1px solid rgba(0,200,100,0.4); border-radius: 999px;
+      padding: 8px 14px; font-size: 0.78rem; color: #60ff90; backdrop-filter: blur(8px);
+    }
+    .ar-dot { width: 7px; height: 7px; background: #60ff90; border-radius: 50%; box-shadow: 0 0 6px #60ff90;
+      animation: arDotPulse 1.2s ease-in-out infinite; }
+    @keyframes arDotPulse { 0%,100%{opacity:1;transform:scale(1);} 50%{opacity:.5;transform:scale(.7);} }
     .ar-hint {
-      position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-      background: rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 999px;
-      padding: 10px 20px;
-      font-size: 0.8rem; color: rgba(255,255,255,0.85);
-      backdrop-filter: blur(8px);
-      white-space: nowrap;
-    }
-    .ar-scan-ring {
-      position: absolute; top: 50%; left: 50%;
-      width: min(65vw, 240px); aspect-ratio: 0.7; /* proporção de página de livro */
-      transform: translate(-50%, -60%);
-      border: 2px solid rgba(160,100,255,0.7);
-      border-radius: 4px;
-      box-shadow: 0 0 0 4px rgba(160,100,255,0.12);
-      animation: scanPulse 2s ease-in-out infinite;
-    }
-    .ar-scan-ring::before, .ar-scan-ring::after {
-      content: '';
-      position: absolute;
-      width: 20px; height: 20px;
-      border-color: #c080ff; border-style: solid;
-    }
-    .ar-scan-ring::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-radius: 3px 0 0 3px; }
-    .ar-scan-ring::after  { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-radius: 0 3px 3px 0; }
-    @keyframes scanPulse {
-      0%, 100% { border-color: rgba(160,100,255,0.7); box-shadow: 0 0 0 4px rgba(160,100,255,0.12); }
-      50%       { border-color: rgba(200,150,255,0.9); box-shadow: 0 0 0 8px rgba(160,100,255,0.06); }
+      position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.15); border-radius: 999px;
+      padding: 10px 20px; font-size: 0.8rem; color: rgba(255,255,255,0.85); backdrop-filter: blur(8px); white-space: nowrap;
     }
 
-    /* Feedback de detecção */
-    #ar-detected-badge {
-      position: absolute; top: 20px; right: 20px;
-      display: none;
-      align-items: center; gap: 8px;
-      background: rgba(0, 200, 100, 0.15);
-      border: 1px solid rgba(0, 200, 100, 0.4);
-      border-radius: 999px;
-      padding: 8px 14px;
-      font-size: 0.78rem; color: #60ff90;
-      backdrop-filter: blur(8px);
-    }
-    .ar-dot {
-      width: 7px; height: 7px;
-      background: #60ff90;
-      border-radius: 50%;
-      animation: arDotPulse 1.2s ease-in-out infinite;
-      box-shadow: 0 0 6px #60ff90;
-    }
-    @keyframes arDotPulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50%       { opacity: 0.5; transform: scale(0.7); }
-    }
+    /* MindAR cria o vídeo da câmera e o canvas — garante que apareçam */
+    a-scene { width: 100% !important; height: 100% !important; }
   </style>
 </head>
 <body>
 
-  <!-- ===================== Tela inicial ===================== -->
-  <div id="ar-start-screen">
-    <div class="ar-start-cover-wrap">
-      <img class="ar-start-cover" src="assets/pages/cover.jpg" alt="Capa do livro Deise">
-    </div>
-    <div class="ar-start-header">
-      <h1>Realidade Aumentada</h1>
-      <p>Aponte a câmera para as páginas do livro físico e veja a história ganhar vida</p>
-    </div>
-
-    <div class="ar-steps">
-      <div class="ar-step">
-        <span class="ar-step-num">1</span>
-        Segure o livro físico com boa iluminação
-      </div>
-      <div class="ar-step">
-        <span class="ar-step-num">2</span>
-        Toque em "Ativar câmera" e permita o acesso
-      </div>
-      <div class="ar-step">
-        <span class="ar-step-num">3</span>
-        Aponte para a capa ou páginas — a magia acontece!
-      </div>
-    </div>
-
-    <div class="ar-btn-group">
-      <button class="ar-btn ar-btn--primary" id="ar-start-btn">
-        📸 Ativar câmera
-      </button>
-      <a href="ar.html" class="ar-btn ar-btn--secondary">
-        ← Voltar às opções
-      </a>
-    </div>
+  <!-- ===================== Intro ===================== -->
+  <div id="ar-intro">
+    <img class="ar-intro-cover" src="assets/pages/cover.jpg" alt="Capa do livro Deise">
+    <div class="ar-spinner" id="ar-spinner"></div>
+    <h1>Realidade Aumentada</h1>
+    <p id="ar-intro-msg">Permita o acesso à câmera e aponte para a capa do livro físico.</p>
+    <p class="ar-intro-err" id="ar-intro-err"></p>
+    <a href="ar.html" class="ar-back-link">← Voltar</a>
   </div>
 
-  <!-- ===================== Tela de loading dos scripts ===================== -->
-  <div id="ar-loading-screen">
-    <div class="ar-loading-spinner"></div>
-    <p class="ar-loading-title">Preparando a câmera…</p>
-    <p class="ar-loading-step" id="ar-loading-step">Iniciando…</p>
-    <div class="ar-loading-bar-outer">
-      <div class="ar-loading-bar-inner" id="ar-loading-bar"></div>
-    </div>
-    <p class="ar-loading-error" id="ar-loading-error"></p>
-  </div>
-
-  <!-- ===================== Tela de setup necessário ===================== -->
-  <div id="ar-setup-screen">
-    <div class="ar-setup-icon">⚙️</div>
-    <p class="ar-setup-title">Targets não compilados</p>
-    <p class="ar-setup-desc">
-      Para usar a RA, é necessário compilar os marcadores visuais do livro.<br>
-      Execute o script abaixo no terminal:
-    </p>
-    <div class="ar-setup-code">
-      node scripts/compile-ar-targets.mjs
-    </div>
-    <p class="ar-setup-desc" style="font-size:0.76rem;">
-      Ou use o compilador online:<br>
-      <strong>hiukim.github.io/mind-ar-js-doc/tools/compiler/</strong><br>
-      Envie <code>assets/pages/cover.jpg</code> e salve como <code>assets/ar/targets.mind</code>
-    </p>
-    <a href="ar.html" class="ar-btn ar-btn--secondary" style="max-width:300px; text-align:center; display:block;">
-      ← Voltar
-    </a>
-  </div>
-
-  <!-- ===================== HUD (visível durante AR ativa) ===================== -->
+  <!-- ===================== HUD ===================== -->
   <div id="ar-hud">
     <a href="ar.html" class="ar-back">← Sair</a>
-    <div class="ar-scan-ring"></div>
-    <div id="ar-detected-badge">
-      <span class="ar-dot"></span>
-      Livro detectado!
-    </div>
+    <div id="ar-detected-badge"><span class="ar-dot"></span> Livro detectado!</div>
     <div class="ar-hint" id="ar-hint-text">Aponte para a capa ou uma página</div>
   </div>
 
-  <!-- ===================== Cena A-Frame (injetada via JS) ===================== -->
-  <div id="ar-scene-container"></div>
+  <!-- ===================== Cena AR (declarativa) ===================== -->
+  <a-scene
+    mindar-image="imageTargetSrc: assets/ar/targets.mind; autoStart: true; uiLoading: no; uiScanning: no; uiError: no;"
+    color-space="sRGB"
+    renderer="colorManagement: true"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-assets timeout="10000">
+      <a-asset-item id="m-deise-capa" src="assets/ar/deise-capa.glb?v=3"></a-asset-item>
+      <a-asset-item id="m-deise-bale" src="assets/ar/deise-bale.glb?v=3"></a-asset-item>
+      <a-asset-item id="m-sonhos"     src="assets/ar/sonhos.glb?v=3"></a-asset-item>
+      <a-asset-item id="m-arvore"     src="assets/ar/arvore.glb?v=3"></a-asset-item>
+      <a-asset-item id="m-ponte"      src="assets/ar/ponte.glb?v=3"></a-asset-item>
+    </a-assets>
+
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-light type="ambient" intensity="1.1"></a-light>
+    <a-light type="directional" intensity="0.8" position="1 2 1"></a-light>
+
+    <!-- Cada alvo tem um .gesture-wrap: os gestos do usuário (girar/zoom) vão nele,
+         enquanto as animações idle ficam nos modelos — assim não brigam. -->
+
+    <!-- 0 · Capa — Deise sonhando -->
+    <a-entity class="ar-target" data-label="Capa — Deise sonhando" mindar-image-target="targetIndex: 0">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-deise-capa" position="0 -0.15 0.05" scale="0.55 0.55 0.55" rotation="0 0 0"
+          animation="property: position; from: 0 -0.15 0.05; to: 0 -0.07 0.05; dur: 2400; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 1 · Página 4 — Infância de Deise -->
+    <a-entity class="ar-target" data-label="Página 4 — Infância de Deise" mindar-image-target="targetIndex: 1">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-deise-bale" position="0 -0.15 0.05" scale="0.55 0.55 0.55" rotation="0 12 0"
+          animation="property: rotation; from: 0 -8 0; to: 0 12 0; dur: 4000; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 2 · Página 8 — Os sonhos -->
+    <a-entity class="ar-target" data-label="Página 8 — Os sonhos" mindar-image-target="targetIndex: 2">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-sonhos" position="0 -0.1 0.06" scale="0.5 0.5 0.5"
+          animation="property: rotation; to: 0 360 0; dur: 9000; loop: true; easing: linear"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 3 · Página 10 — Sonhe grande -->
+    <a-entity class="ar-target" data-label="Página 10 — Sonhe grande" mindar-image-target="targetIndex: 3">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-arvore" position="0 -0.15 0.05" scale="0.6 0.6 0.6"
+          animation="property: scale; from: 0.57 0.57 0.57; to: 0.62 0.62 0.62; dur: 3200; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 4 · Página 14 — A ARONG nasce -->
+    <a-entity class="ar-target" data-label="Página 14 — A ARONG nasce" mindar-image-target="targetIndex: 4">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-ponte" position="0 -0.1 0.05" scale="0.6 0.6 0.6" rotation="0 -10 0"
+          animation="property: rotation; from: 0 -10 0; to: 0 10 0; dur: 5000; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+  </a-scene>
 
   <script>
-    // Carrega MindAR + A-Frame apenas quando o usuário inicia
-    let sceneEl = null;
-    let targetFound = false;
+    // ===== Painel de diagnóstico — DESLIGADO por padrão. Ligue com ?debug=1 na URL. =====
+    const DEBUG = new URLSearchParams(location.search).get('debug') === '1';
+    let dbgEl = null, dbgStatus = null, dbgLog = null;
+    function ensureDbg() {
+      if (dbgEl || !DEBUG) return;
+      dbgEl = document.createElement('div');
+      dbgEl.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:9999;background:rgba(0,0,0,0.85);border-radius:8px;font:11px/1.4 monospace;';
+      dbgStatus = document.createElement('div');
+      dbgStatus.style.cssText = 'color:#ffd166;padding:8px 10px;border-bottom:1px solid #333;white-space:pre-wrap;font-weight:bold;';
+      dbgStatus.textContent = '📷 aguardando câmera…';
+      dbgLog = document.createElement('div');
+      dbgLog.style.cssText = 'color:#0f0;padding:8px 10px;max-height:28vh;overflow:auto;white-space:pre-wrap;';
+      dbgEl.appendChild(dbgStatus); dbgEl.appendChild(dbgLog);
+      document.body.appendChild(dbgEl);
+      const toggle = document.createElement('button');
+      toggle.textContent = 'ocultar log ▾';
+      toggle.style.cssText = 'position:fixed;right:8px;bottom:8px;z-index:10000;background:#a060ff;color:#fff;border:none;border-radius:8px;padding:8px 12px;font:bold 12px monospace;';
+      let hidden = false;
+      toggle.onclick = () => { hidden=!hidden; dbgStatus.style.display=hidden?'none':'block'; dbgLog.style.display=hidden?'none':'block'; dbgEl.style.background=hidden?'transparent':'rgba(0,0,0,0.85)'; toggle.textContent=hidden?'mostrar log ▴':'ocultar log ▾'; };
+      document.body.appendChild(toggle);
+    }
+    function dbg(msg){ if(!DEBUG) return; ensureDbg(); const t=(performance.now()/1000).toFixed(1); dbgLog.textContent+=`[${t}s] ${msg}\n`; dbgLog.scrollTop=dbgLog.scrollHeight; }
+    function camStatus(tag){
+      if(!DEBUG) return; const v=document.querySelector('video');
+      if(!v){ if(dbgStatus) dbgStatus.textContent=`📷 ${tag}: sem <video>`; return; }
+      if(dbgStatus) dbgStatus.textContent=`📷 ${tag}: ${v.videoWidth}×${v.videoHeight} ready=${v.readyState} paused=${v.paused}`;
+    }
+    window.addEventListener('error', e => dbg('JS ERROR: ' + (e.message||e.error)));
 
-    const startScreen = document.getElementById('ar-start-screen');
-    const setupScreen = document.getElementById('ar-setup-screen');
-    const hud         = document.getElementById('ar-hud');
-    const detectedBadge = document.getElementById('ar-detected-badge');
-    const hintText    = document.getElementById('ar-hint-text');
-    const startBtn    = document.getElementById('ar-start-btn');
-    const container   = document.getElementById('ar-scene-container');
+    const intro    = document.getElementById('ar-intro');
+    const spinner  = document.getElementById('ar-spinner');
+    const introMsg = document.getElementById('ar-intro-msg');
+    const introErr = document.getElementById('ar-intro-err');
+    const hint     = document.getElementById('ar-hint-text');
+    const badge    = document.getElementById('ar-detected-badge');
+    const scene    = document.querySelector('a-scene');
 
-    const loadingScreen = document.getElementById('ar-loading-screen');
-    const loadingStep   = document.getElementById('ar-loading-step');
-    const loadingBar    = document.getElementById('ar-loading-bar');
-    const loadingError  = document.getElementById('ar-loading-error');
+    dbg('página carregada (declarativa) — DEBUG on');
 
-    // Pré-carrega os scripts CDN assim que a página abre (silencioso)
-    const SCRIPTS = [
-      { src: 'https://cdn.jsdelivr.net/npm/meshoptimizer@0.22.0/meshopt_decoder.js', label: 'Decodificador 3D…',    pct: 20 },
-      { src: 'https://aframe.io/releases/1.5.0/aframe.min.js',                         label: 'Motor de realidade…',  pct: 60 },
-      { src: 'https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js', label: 'Rastreamento AR…', pct: 90 },
-    ];
-    const preloaded = {};
-    SCRIPTS.forEach(({ src }) => {
-      const link = document.createElement('link');
-      link.rel  = 'preload';
-      link.as   = 'script';
-      link.href = src;
-      document.head.appendChild(link);
+    // Some a intro quando a câmera + tracking estão prontos
+    scene.addEventListener('arReady', () => {
+      dbg('arReady — câmera + tracking prontos');
+      camStatus('arReady');
+      intro.classList.add('hide');
+      setTimeout(() => intro.style.display = 'none', 600);
+      let n = 0; const iv = setInterval(() => { camStatus('tick '+(++n)); if(n>=8) clearInterval(iv); }, 1000);
+    });
+    scene.addEventListener('arError', e => {
+      dbg('arError: ' + (e.detail || '?'));
+      spinner.style.display = 'none';
+      introErr.style.display = 'block';
+      introErr.textContent = '⚠️ Não consegui iniciar a câmera. Verifique a permissão em Ajustes → Safari → Câmera e recarregue.';
     });
 
-    startBtn.addEventListener('click', initAR);
+    // Log de carga dos modelos
+    document.querySelectorAll('a-asset-item').forEach(a => {
+      a.addEventListener('loaded', () => dbg('✔ asset: ' + a.id));
+      a.addEventListener('error', () => dbg('✘ asset FALHOU: ' + a.id + ' (' + a.getAttribute('src') + ')'));
+    });
 
-    async function initAR() {
-      // 1. Verifica se targets.mind existe
-      try {
-        const r = await fetch('assets/ar/targets.mind', { method: 'HEAD' });
-        if (!r.ok) throw new Error('not found');
-      } catch {
-        startScreen.style.display = 'none';
-        setupScreen.style.display = 'flex';
-        return;
-      }
+    // ===== Gestos: girar (1 dedo) e zoom/escala (pinça) no objeto detectado =====
+    let activeWrap = null;               // .gesture-wrap do alvo atualmente visível
+    const ROT_SPEED = 0.008;             // sensibilidade da rotação
+    const MIN_SCALE = 0.4, MAX_SCALE = 3.0;
 
-      // 2. Mostra tela de loading com progresso
-      startScreen.style.display = 'none';
-      loadingScreen.style.display = 'flex';
-      loadingBar.style.width = '5%';
+    // Estado por wrap guardado no próprio elemento (persiste entre detecções)
+    function wrapState(el) {
+      if (!el._g) el._g = { rotX: 0, rotY: 0, scale: 1 };
+      return el._g;
+    }
+    function applyWrap(el) {
+      const g = wrapState(el);
+      el.object3D.rotation.y = g.rotY;
+      el.object3D.rotation.x = g.rotX;
+      el.object3D.scale.setScalar(g.scale);
+    }
 
-      try {
-        for (const { src, label, pct } of SCRIPTS) {
-          loadingStep.textContent = label;
-          await loadScript(src);
-          loadingBar.style.width = pct + '%';
+    let lastX = 0, lastY = 0, lastDist = 0, mode = null;
+    function dist(t) { const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY; return Math.hypot(dx, dy); }
+
+    window.addEventListener('touchstart', e => {
+      if (!activeWrap) return;
+      if (e.touches.length === 1) { mode = 'rotate'; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; }
+      else if (e.touches.length === 2) { mode = 'pinch'; lastDist = dist(e.touches); }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', e => {
+      if (!activeWrap || !mode) return;
+      const g = wrapState(activeWrap);
+      if (mode === 'rotate' && e.touches.length === 1) {
+        const t = e.touches[0];
+        g.rotY += (t.clientX - lastX) * ROT_SPEED;
+        g.rotX += (t.clientY - lastY) * ROT_SPEED;
+        g.rotX = Math.max(-1.2, Math.min(1.2, g.rotX)); // limita a inclinação
+        lastX = t.clientX; lastY = t.clientY;
+        applyWrap(activeWrap);
+      } else if (mode === 'pinch' && e.touches.length === 2) {
+        const d = dist(e.touches);
+        if (lastDist > 0) {
+          g.scale *= d / lastDist;
+          g.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, g.scale));
+          applyWrap(activeWrap);
         }
-
-        // Injeta decoder no THREE usado pelo A-Frame
-        if (window.THREE && window.MeshoptDecoder) {
-          window.THREE.MeshoptDecoder = window.MeshoptDecoder;
-        }
-
-        loadingStep.textContent = 'Iniciando câmera…';
-        loadingBar.style.width = '95%';
-
-        // 3. Monta cena e aguarda evento arReady do MindAR (câmera ativa + tracking pronto)
-        buildScene();
-
-        await Promise.race([
-          waitForArReady(),
-          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 20000)),
-        ]);
-
-        loadingBar.style.width = '100%';
-        await new Promise(r => setTimeout(r, 200));
-
-        // 4. Esconde loading e mostra HUD
-        loadingScreen.style.display = 'none';
-        hud.style.display = 'block';
-
-      } catch (err) {
-        loadingStep.textContent = '';
-        loadingError.textContent = err.message === 'timeout'
-          ? '⚠️ Câmera não iniciou. Feche outras abas com câmera, vá em Configurações → Safari → Câmera → Permitir, e recarregue.'
-          : `⚠️ Erro: ${err.message}. Recarregue a página.`;
-        loadingError.style.display = 'block';
-        document.querySelector('.ar-loading-spinner').style.display = 'none';
+        lastDist = d;
       }
-    }
+    }, { passive: true });
 
-    function waitForArReady() {
-      return new Promise((resolve, reject) => {
-        // MindAR dispara 'arReady' na cena quando câmera + tracking estão prontos
-        const onReady = () => { sceneEl && sceneEl.removeEventListener('arError', onError); resolve(); };
-        const onError = (e) => { sceneEl && sceneEl.removeEventListener('arReady', onReady); reject(new Error(e.detail || 'AR error')); };
-        // Aguarda sceneEl ser criado pelo buildScene antes de attachar eventos
-        setTimeout(() => {
-          if (!sceneEl) { resolve(); return; }
-          sceneEl.addEventListener('arReady', onReady, { once: true });
-          sceneEl.addEventListener('arError', onError, { once: true });
-        }, 100);
+    window.addEventListener('touchend', e => { if (e.touches.length === 0) mode = null; else if (e.touches.length === 1) { mode = 'rotate'; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; } }, { passive: true });
+
+    // Detecção por alvo
+    document.querySelectorAll('.ar-target').forEach(t => {
+      const label = t.getAttribute('data-label');
+      const wrap = t.querySelector('.gesture-wrap');
+      t.addEventListener('targetFound', () => {
+        dbg('🎯 targetFound: ' + label);
+        badge.style.display = 'flex';
+        if (hint) hint.textContent = '👆 Arraste para girar · pinça para zoom';
+        activeWrap = wrap;
+        if (wrap) applyWrap(wrap); // reaplica o estado do usuário
+        const m = t.querySelector('a-gltf-model');
+        if (m && window.AFRAME) {
+          const o = m.object3D, THREE = AFRAME.THREE;
+          const ws = o.getWorldScale(new THREE.Vector3());
+          let meshes = 0; o.traverse(n => { if (n.isMesh) meshes++; });
+          dbg(`  modelo: meshes=${meshes} worldScale=${ws.x.toFixed(3)} vis=${o.visible}`);
+        }
       });
-    }
-
-    function loadScript(src) {
-      return new Promise((resolve, reject) => {
-        if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
-        const s = document.createElement('script');
-        s.src = src;
-        s.onload = resolve;
-        s.onerror = () => reject(new Error(`Falha ao carregar ${src.split('/').pop()}`));
-        document.head.appendChild(s);
+      t.addEventListener('targetLost', () => {
+        dbg('targetLost: ' + label);
+        badge.style.display = 'none';
+        if (activeWrap === wrap) { activeWrap = null; mode = null; }
+        if (hint) hint.textContent = 'Aponte para a capa ou uma página';
       });
-    }
+    });
 
-    // Modelos por targetIndex — cada página do livro tem sua própria experiência AR
-    // O targetIndex corresponde à ordem em que as páginas foram compiladas no compile-ar.html:
-    //   0 → Capa, 1 → Página 4, 2 → Página 8, 3 → Página 10, 4 → Página 14
-    const AR_TARGETS = [
-      {
-        index: 0,
-        label: 'Capa — Deise sonhando',
-        models: [
-          {
-            src: 'assets/ar/deise-capa.glb',
-            position: '0 0.35 0.05',
-            scale: '0.32 0.32 0.32',
-            rotation: '0 0 0',
-            animation: 'property: position; from: 0 0.28 0.05; to: 0 0.38 0.05; dur: 2200; dir: alternate; loop: true; easing: easeInOutSine',
-          },
-          {
-            src: 'assets/ar/estrela.glb',
-            position: '0.38 0.65 0.12',
-            scale: '0.09 0.09 0.09',
-            rotation: '0 0 0',
-            animation: 'property: rotation; to: 0 360 15; dur: 3500; loop: true; easing: linear',
-          },
-        ]
-      },
-      {
-        index: 1,
-        label: 'Página 4 — Infância de Deise',
-        models: [
-          {
-            src: 'assets/ar/deise.glb',
-            position: '0 0.3 0.05',
-            scale: '0.28 0.28 0.28',
-            rotation: '0 10 0',
-            animation: 'property: position; from: 0 0.22 0.05; to: 0 0.32 0.05; dur: 2000; dir: alternate; loop: true; easing: easeInOutSine',
-          },
-        ]
-      },
-      {
-        index: 2,
-        label: 'Página 8 — Os sonhos',
-        models: [
-          {
-            src: 'assets/ar/globo.glb',
-            position: '0 0.3 0.08',
-            scale: '0.28 0.28 0.28',
-            rotation: '0 0 0',
-            animation: 'property: rotation; to: 0 360 0; dur: 7000; loop: true; easing: linear',
-          },
-          {
-            src: 'assets/ar/estrela.glb',
-            position: '-0.32 0.55 0.12',
-            scale: '0.1 0.1 0.1',
-            rotation: '0 0 0',
-            animation: 'property: rotation; to: 20 360 10; dur: 4000; loop: true; easing: linear',
-          },
-        ]
-      },
-      {
-        index: 3,
-        label: 'Página 10 — Sonhe grande',
-        models: [
-          {
-            src: 'assets/ar/arvore.glb',
-            position: '0 0.25 0.05',
-            scale: '0.22 0.22 0.22',
-            rotation: '0 0 0',
-            animation: 'property: scale; from: 0.19 0.19 0.19; to: 0.22 0.22 0.22; dur: 3000; dir: alternate; loop: true; easing: easeInOutSine',
-          },
-        ]
-      },
-      {
-        index: 4,
-        label: 'Página 14 — A ARONG nasce',
-        models: [
-          {
-            src: 'assets/ar/arvore.glb',
-            position: '-0.25 0.2 0.05',
-            scale: '0.18 0.18 0.18',
-            rotation: '0 -20 0',
-            animation: 'property: rotation; from: 0 -20 0; to: 0 20 0; dur: 4000; dir: alternate; loop: true; easing: easeInOutSine',
-          },
-          {
-            src: 'assets/ar/estrela.glb',
-            position: '0.3 0.5 0.1',
-            scale: '0.1 0.1 0.1',
-            rotation: '0 0 0',
-            animation: 'property: rotation; to: 0 360 0; dur: 3000; loop: true; easing: linear',
-          },
-        ]
-      },
-    ];
-
-    function buildScene() {
-      const scene = document.createElement('a-scene');
-      scene.setAttribute('mindar-image',
-        'imageTargetSrc: assets/ar/targets.mind; autoStart: true; uiLoading: no; uiScanning: no; uiError: no;');
-      scene.setAttribute('color-space', 'sRGB');
-      scene.setAttribute('renderer', 'colorManagement: true; physicallyCorrectLights: true');
-      scene.setAttribute('vr-mode-ui', 'enabled: false');
-      scene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-      scene.setAttribute('embedded', '');
-      scene.style.cssText = 'position:fixed;inset:0;z-index:50;width:100%;height:100%;';
-
-      // Câmera (fixa — MindAR controla posição)
-      const cam = document.createElement('a-camera');
-      cam.setAttribute('position', '0 0 0');
-      cam.setAttribute('look-controls', 'enabled: false');
-      scene.appendChild(cam);
-
-      // Luz ambiente para os modelos
-      const ambLight = document.createElement('a-light');
-      ambLight.setAttribute('type', 'ambient');
-      ambLight.setAttribute('intensity', '0.8');
-      scene.appendChild(ambLight);
-
-      const dirLight = document.createElement('a-light');
-      dirLight.setAttribute('type', 'directional');
-      dirLight.setAttribute('position', '1 3 2');
-      dirLight.setAttribute('intensity', '1.2');
-      scene.appendChild(dirLight);
-
-      // Monta cada target com seus modelos
-      AR_TARGETS.forEach(def => {
-        const target = document.createElement('a-entity');
-        target.setAttribute('mindar-image-target', `targetIndex: ${def.index}`);
-
-        def.models.forEach(m => {
-          const model = document.createElement('a-gltf-model');
-          model.setAttribute('src',      m.src);
-          model.setAttribute('position', m.position);
-          model.setAttribute('scale',    m.scale);
-          model.setAttribute('rotation', m.rotation);
-          if (m.animation) model.setAttribute('animation', m.animation);
-          target.appendChild(model);
-        });
-
-        target.addEventListener('targetFound', () => {
-          targetFound = true;
-          detectedBadge.style.display = 'flex';
-          if (hintText) hintText.textContent = `✨ ${def.label}`;
-        });
-        target.addEventListener('targetLost', () => {
-          targetFound = false;
-          detectedBadge.style.display = 'none';
-          if (hintText) hintText.textContent = 'Aponte para a capa ou uma página';
-        });
-
-        scene.appendChild(target);
-      });
-
-      container.appendChild(scene);
-      sceneEl = scene;
-    }
+    // Fallback: se a câmera não iniciar em 18s, mostra erro
+    setTimeout(() => {
+      if (!intro.classList.contains('hide')) {
+        const v = document.querySelector('video');
+        if (!v || v.readyState < 2) {
+          spinner.style.display = 'none';
+          introErr.style.display = 'block';
+          introErr.textContent = '⚠️ A câmera demorou a iniciar. Recarregue a página e permita o acesso à câmera.';
+        }
+      }
+    }, 18000);
   </script>
 </body>
 </html>

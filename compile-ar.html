@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compilador AR — Deise</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: #0a0a1a;
+      color: #e0e0ff;
+      font-family: system-ui, sans-serif;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+    h1 { font-size: 1.4rem; font-weight: 700; color: #c0a0ff; }
+    p.desc { font-size: 0.88rem; color: rgba(255,255,255,0.5); text-align: center; max-width: 500px; line-height: 1.6; }
+
+    .targets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      width: 100%;
+      max-width: 640px;
+    }
+    .target-card {
+      background: rgba(255,255,255,0.05);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+      position: relative;
+    }
+    .target-card:hover { border-color: rgba(160,100,255,0.5); transform: translateY(-2px); }
+    .target-card.selected { border-color: #a060ff; background: rgba(160,100,255,0.15); }
+    .target-card img { width: 100%; aspect-ratio: 0.7; object-fit: cover; display: block; }
+    .target-card .card-label {
+      font-size: 0.72rem; text-align: center;
+      padding: 6px 4px; color: rgba(255,255,255,0.7);
+      background: rgba(0,0,0,0.4);
+    }
+    .target-card .card-check {
+      position: absolute; top: 6px; right: 6px;
+      width: 22px; height: 22px;
+      background: #a060ff;
+      border-radius: 50%;
+      display: none; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700;
+      color: #fff;
+    }
+    .target-card.selected .card-check { display: flex; }
+
+    .actions { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; max-width: 380px; }
+    .btn-compile {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #7b2fbe, #a040d0);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-compile:hover { opacity: 0.9; }
+    .btn-compile:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #progress-wrap {
+      width: 100%;
+      max-width: 380px;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .progress-bar-outer {
+      background: rgba(255,255,255,0.1);
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .progress-bar-inner {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #7b2fbe, #e91e8c, #2196f3);
+      background-size: 200% 100%;
+      animation: shimmerPB 2s linear infinite;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+    @keyframes shimmerPB {
+      0% { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+    .progress-status {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+    }
+
+    #result-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+    }
+    .result-icon { font-size: 3rem; }
+    .result-title { font-size: 1.1rem; font-weight: 700; color: #60ff90; }
+    .result-desc { font-size: 0.82rem; color: rgba(255,255,255,0.5); max-width: 320px; line-height: 1.55; }
+    .btn-download {
+      display: inline-block;
+      padding: 12px 28px;
+      background: #008850;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn-download:hover { background: #00aa60; }
+    .result-hint {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.3);
+      max-width: 320px;
+      line-height: 1.5;
+    }
+    code { background: rgba(255,255,255,0.1); border-radius: 4px; padding: 1px 5px; font-size: 0.78rem; }
+
+    .selection-hint {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.35);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Compilador AR — Livro Deise</h1>
+  <p class="desc">
+    Selecione as páginas que terão experiência de Realidade Aumentada.<br>
+    A ordem de seleção define o <strong>targetIndex</strong> de cada página.
+  </p>
+
+  <p class="selection-hint" id="selection-count">0 páginas selecionadas</p>
+
+  <div class="targets-grid" id="targets-grid">
+    <!-- Preenchido via JS -->
+  </div>
+
+  <div class="actions">
+    <button class="btn-compile" id="btn-compile" disabled>
+      ⚙️ Compilar targets.mind
+    </button>
+  </div>
+
+  <div id="progress-wrap">
+    <div class="progress-bar-outer">
+      <div class="progress-bar-inner" id="progress-bar"></div>
+    </div>
+    <p class="progress-status" id="progress-status">Iniciando compilação…</p>
+  </div>
+
+  <div id="result-wrap">
+    <div class="result-icon">✅</div>
+    <p class="result-title">targets.mind gerado!</p>
+    <p class="result-desc" id="result-desc"></p>
+    <p class="result-size" id="result-size" style="font-size:0.82rem;color:rgba(255,255,255,0.4);margin-top:-4px;"></p>
+    <!-- Link visível — clique com botão direito → "Salvar link como..." se o clique normal não funcionar -->
+    <a class="btn-download" id="btn-download" download="targets.mind" href="#">
+      ⬇ Clique aqui para baixar targets.mind
+    </a>
+    <p class="result-hint">
+      Se o download não iniciar: clique com <strong>botão direito</strong> no botão acima → <strong>Salvar link como</strong><br><br>
+      Depois mova o arquivo para:<br>
+      <code>assets/ar/targets.mind</code>
+    </p>
+  </div>
+
+  <!-- A-Frame precisa vir antes do MindAR para o compilador funcionar -->
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.5.0/dist/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+  <script>
+    // Todas as páginas do livro — capa, miolo (1–38) e contracapa
+    const PAGES = [
+      { src: 'assets/pages/cover.jpg',      label: 'Capa' },
+      ...Array.from({ length: 38 }, (_, i) => {
+        const n = String(i + 1).padStart(2, '0');
+        return { src: `assets/pages/page-${n}.jpg`, label: `Página ${i + 1}` };
+      }),
+      { src: 'assets/pages/back-cover.jpg', label: 'Contracapa' },
+    ];
+
+    const selected = new Set();
+    const grid     = document.getElementById('targets-grid');
+    const compileBtn = document.getElementById('btn-compile');
+    const countEl  = document.getElementById('selection-count');
+
+    function showError(msg) {
+      const progressStatus = document.getElementById('progress-status');
+      progressStatus.style.color = '#ff6060';
+      progressStatus.textContent = '❌ ' + msg;
+      compileBtn.disabled = false;
+    }
+
+    // Monta grid de páginas
+    PAGES.forEach((page, i) => {
+      const card = document.createElement('div');
+      card.className = 'target-card';
+      card.innerHTML = `
+        <img src="${page.src}" alt="${page.label}" loading="lazy">
+        <div class="card-label">${page.label}</div>
+        <div class="card-check" id="check-${i}"></div>
+      `;
+      card.addEventListener('click', () => togglePage(page, card, i));
+      grid.appendChild(card);
+    });
+
+    function togglePage(page, card, i) {
+      if (selected.has(page.src)) {
+        selected.delete(page.src);
+        card.classList.remove('selected');
+      } else {
+        selected.add(page.src);
+        card.classList.add('selected');
+      }
+      // Atualiza números de ordem
+      let order = 1;
+      PAGES.forEach((p, idx) => {
+        const el = document.getElementById(`check-${idx}`);
+        if (el) el.textContent = selected.has(p.src) ? order++ : '';
+      });
+      countEl.textContent = `${selected.size} página${selected.size !== 1 ? 's' : ''} selecionada${selected.size !== 1 ? 's' : ''}`;
+      compileBtn.disabled = selected.size === 0;
+    }
+
+    // Compilação
+    let compiledBuffer = null;
+
+    compileBtn.addEventListener('click', async () => {
+      if (selected.size === 0) return;
+
+      compileBtn.disabled = true;
+      const progressWrap   = document.getElementById('progress-wrap');
+      const progressBar    = document.getElementById('progress-bar');
+      const progressStatus = document.getElementById('progress-status');
+      progressWrap.style.display = 'flex';
+      progressStatus.style.color = '';
+      document.getElementById('result-wrap').style.display = 'none';
+
+      try {
+        // Verifica se o compilador está disponível
+        if (!window.MINDAR || !window.MINDAR.IMAGE || !window.MINDAR.IMAGE.Compiler) {
+          showError('Biblioteca MindAR não carregou. Recarregue a página e tente novamente.');
+          return;
+        }
+
+        // Carrega imagens na ordem de seleção
+        const orderedSrcs    = PAGES.filter(p => selected.has(p.src)).map(p => p.src);
+        const orderedLabels  = PAGES.filter(p => selected.has(p.src)).map(p => p.label);
+        progressStatus.textContent = `Carregando ${orderedSrcs.length} imagem(ns)…`;
+
+        const images = await Promise.all(orderedSrcs.map(loadImage));
+        progressStatus.textContent = 'Compilando marcadores — pode levar 1-3 min, aguarde…';
+        progressBar.style.width = '5%';
+
+        const compiler = new window.MINDAR.IMAGE.Compiler();
+        await compiler.compileImageTargets(images, (progress) => {
+          const pct = Math.min(99, Math.round(progress * 100));
+          progressBar.style.width = `${pct}%`;
+          progressStatus.textContent = `Compilando… ${pct}%`;
+        });
+
+        compiledBuffer = await compiler.exportData();
+
+        // Cria blob URL e coloca diretamente no link <a>
+        const blob    = new Blob([compiledBuffer]);
+        const blobUrl = URL.createObjectURL(blob);
+        const sizeKB  = (blob.size / 1024).toFixed(0);
+
+        progressBar.style.width = '100%';
+        progressStatus.textContent = 'Concluído!';
+        setTimeout(() => {
+          progressWrap.style.display = 'none';
+          const resultWrap = document.getElementById('result-wrap');
+          resultWrap.style.display = 'flex';
+          document.getElementById('result-desc').textContent =
+            `${orderedSrcs.length} alvo(s): ${orderedLabels.join(', ')}`;
+          document.getElementById('result-size').textContent =
+            `Tamanho: ${sizeKB} KB`;
+          const link = document.getElementById('btn-download');
+          link.href = blobUrl;
+        }, 600);
+
+      } catch (err) {
+        console.error('[compile-ar]', err);
+        showError(err.message || 'Erro desconhecido. Veja o console (F12).');
+      }
+    });
+
+    // Download é feito pelo <a href=blobUrl download="targets.mind"> — sem JS extra necessário
+
+    // Retorna HTMLImageElement (MindAR aceita direto, sem conversão para ImageData)
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload  = () => resolve(img);
+        img.onerror = () => reject(new Error(`Falha ao carregar imagem: ${src}`));
+        img.src = src;
+      });
+    }
+  </script>
+</body>
+</html>

@@ -3,6 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Roteamento por dispositivo (roda o quanto antes p/ evitar flash):
+       • Celular → tela de escolha (livro digital vs. realidade aumentada) = ar.html
+       • PC      → segue direto para o livro digital (esta página)
+       A tela de escolha volta para cá com ?d=1 para não repetir o desvio. -->
+  <script>
+    (function () {
+      if (new URLSearchParams(location.search).has('d')) return;
+      var ua = navigator.userAgent || '';
+      var isMobile = /Mobi|Android|iPhone|iPod|Windows Phone/i.test(ua)
+        || (/iPad/.test(ua))
+        || (navigator.maxTouchPoints > 1 && matchMedia('(pointer: coarse)').matches);
+      if (isMobile) location.replace('ar.html');
+    })();
+  </script>
+
   <title>Deise em... Tudo aqui já foi um sonho!</title>
   <meta name="description" content="Livro digital interativo inclusivo — Deise em... Tudo aqui já foi um sonho! Com audiolivro, audiodescrição, Libras, linguagem simples e CAA.">
   <meta property="og:title" content="Deise em... Tudo aqui já foi um sonho!">
@@ -21,7 +37,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Deise">
 
-  <link rel="stylesheet" href="css/style.css?v=1.0.16">
+  <link rel="stylesheet" href="css/style.css?v=1.0.18">
 </head>
 <body>
 
@@ -220,7 +236,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
-  <script type="module" src="js/flipbook.js?v=1.0.16"></script>
+  <script type="module" src="js/flipbook.js?v=1.0.18"></script>
 
   <!-- PWA: registra o service worker (leitura offline) -->
   <script>

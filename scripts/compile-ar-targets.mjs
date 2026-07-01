@@ -15,11 +15,11 @@ const ROOT = resolve(__dirname, '..');
 
 // Imagens na ordem exata dos targetIndex em ar-experience.html
 const TARGET_IMAGES = [
-  { path: 'assets/pages/cover.jpg',   label: 'Capa'      }, // 0 → deise-capa.glb
-  { path: 'assets/pages/page-04.jpg', label: 'Página 4'  }, // 1 → deise.glb
-  { path: 'assets/pages/page-08.jpg', label: 'Página 8'  }, // 2 → estrela.glb
-  { path: 'assets/pages/page-10.jpg', label: 'Página 10' }, // 3 → globo.glb
-  { path: 'assets/pages/page-14.jpg', label: 'Página 14' }, // 4 → arvore.glb
+  { path: 'assets/pages/cover.jpg',   label: 'Capa'      }, // 0 → deise-capa.glb + fada.glb
+  { path: 'assets/pages/page-04.jpg', label: 'Página 4'  }, // 1 → deise-bale.glb
+  { path: 'assets/pages/page-08.jpg', label: 'Página 8'  }, // 2 → sonhos.glb + fada.glb
+  { path: 'assets/pages/page-10.jpg', label: 'Página 10' }, // 3 → arvore.glb
+  { path: 'assets/pages/page-14.jpg', label: 'Página 14' }, // 4 → ponte.glb + fada.glb
 ];
 
 const OUTPUT = resolve(ROOT, 'assets/ar/targets.mind');
