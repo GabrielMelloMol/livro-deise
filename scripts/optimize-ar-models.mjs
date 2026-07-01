@@ -27,12 +27,18 @@ const OUT_DIR = resolve(ROOT, 'assets/ar');
 // Mapa: arquivo de origem (3d/otimizados, já renomeado) → nome final do GLB no AR.
 // A ordem segue as páginas em ar-experience.html (AR_TARGETS).
 const MODELS = [
-  { src: 'deise-capa.glb', out: 'deise-capa.glb' }, // Capa — Deise + estrela (Meshy "Deise and the Star")
-  { src: 'deise-bale.glb', out: 'deise-bale.glb' }, // Pág 4 — infância/dança (Meshy "Golden Pirouette")
-  { src: 'sonhos.glb',     out: 'sonhos.glb'     }, // Pág 8 — os sonhos (Meshy "Meus Sonhos não têm")
-  { src: 'arvore.glb',     out: 'arvore.glb'     }, // Pág 10 — sonhe grande (Meshy "Tree of Inclusion")
-  { src: 'ponte.glb',      out: 'ponte.glb'      }, // Pág 14 — a ARONG nasce (Meshy "Ponte da Empatia")
-  { src: 'fada.glb',       out: 'fada.glb'       }, // Elemento mágico flutuante (Meshy "Azure Stardust Fairy")
+  { src: 'deise-capa.glb',  out: 'deise-capa.glb'  }, // Deise + estrela
+  { src: 'deise-bale.glb',  out: 'deise-bale.glb'  }, // Deise balé/dança
+  { src: 'sonhos.glb',      out: 'sonhos.glb'      }, // sonhos
+  { src: 'arvore.glb',      out: 'arvore.glb'      }, // árvore da inclusão
+  { src: 'ponte.glb',       out: 'ponte.glb'       }, // ponte da empatia
+  { src: 'fada.glb',        out: 'fada.glb'        }, // Deise fada
+  { src: 'estrela.glb',     out: 'estrela.glb'     }, // estrela
+  { src: 'arong.glb',       out: 'arong.glb'       }, // prédio/casa da ARONG
+  { src: 'arong-pitch.glb', out: 'arong-pitch.glb' }, // ARONG "on the pitch"
+  { src: 'livros.glb',      out: 'livros.glb'      }, // livros (Books in Bloom)
+  { src: 'starlet.glb',     out: 'starlet.glb'     }, // Golden Starlet
+  { src: 'familia.glb',     out: 'familia.glb'     }, // família + coração (Rainbow Family Heart)
 ];
 
 const TEXTURE_SIZE = 1024;

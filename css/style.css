@@ -8,6 +8,9 @@ body {
   min-height: 100vh;
   font-family: Georgia, serif;
   overflow: hidden;
+  /* mata o zoom por toque-duplo do iOS (Safari ignora user-scalable=no) sem
+     tirar o pinch-zoom próprio do livro, que é tratado nos handlers de touch */
+  touch-action: manipulation;
 }
 
 /* ---- Loading overlay ---- */

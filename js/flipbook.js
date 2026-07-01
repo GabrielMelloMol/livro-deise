@@ -1,7 +1,7 @@
 // js/flipbook.js
-import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, VERSION } from './config.js?v=1.0.19';
-import { initAccess } from './access.js?v=1.0.19';
-import './stars.js?v=1.0.19';
+import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, VERSION } from './config.js?v=1.0.20';
+import { initAccess } from './access.js?v=1.0.20';
+import './stars.js?v=1.0.20';
 
 // ----- DOM refs -----
 const flipbook          = document.getElementById('flipbook');
@@ -407,13 +407,14 @@ document.addEventListener('keydown', e => {
 
 // ----- Loading screen: baixa TODAS as páginas antes de revelar o livro -----
 // (experiência fluida: nenhuma página aparece "carregando" ao virar a folha)
-const _loadFill   = document.getElementById('loading-fill');
-const _loadStatus = document.querySelector('.loading-status');
+const _loadFill = document.getElementById('loading-fill');
 
+// A barra enche conforme as páginas baixam, mas SEM mostrar contagem/técnico —
+// a mensagem fica mágica ("Preparando a magia…", definida no HTML). O download
+// acontece por baixo dos panos.
 function setLoadProgress(loaded, total) {
   const pct = Math.min(100, Math.round((loaded / total) * 100));
   if (_loadFill) _loadFill.style.width = pct + '%';
-  if (_loadStatus) _loadStatus.textContent = loaded >= total ? 'Pronto! ✨' : `Baixando páginas… ${loaded}/${total}`;
 }
 
 // Carrega todas as imagens do livro; resolve quando terminam (ou após 20s de segurança).
@@ -458,8 +459,29 @@ window.addEventListener('resize', () => {
   resizeTimer = setTimeout(rebuildFlipbook, 250);
 });
 
+// Pré-carrega os vídeos (Libras / linguagem simples) em segundo plano, DEPOIS que o
+// livro já abriu — assim quando a pessoa abre o modo, o vídeo já está em cache e não trava.
+function preloadVideos() {
+  // URLs idênticas às que o player usa (js/access.js → mode.src, sem query),
+  // pra o browser reaproveitar o cache e não baixar duas vezes.
+  ['assets/video/libras.mp4', 'assets/video/linguagem-simples.mp4'].forEach(src => {
+    const v = document.createElement('video');
+    v.preload = 'auto';
+    v.muted = true;
+    v.src = src;
+    v.style.cssText = 'position:absolute;width:0;height:0;opacity:0;pointer-events:none';
+    v.load();
+    document.body.appendChild(v);
+  });
+}
+
 // ----- Inicialização -----
 initAccess();
 initFlipbook();
 // Só revela o livro depois que todas as páginas foram baixadas → zero pop-in ao virar.
-preloadPages().then(hideLoading);
+preloadPages().then(() => {
+  hideLoading();
+  // vídeos baixam em segundo plano, sem segurar a entrada
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1200));
+  idle(preloadVideos);
+});
