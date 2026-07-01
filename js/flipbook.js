@@ -1,7 +1,7 @@
 // js/flipbook.js
-import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, VERSION } from './config.js?v=1.0.18';
-import { initAccess } from './access.js?v=1.0.18';
-import './stars.js?v=1.0.18';
+import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, VERSION } from './config.js?v=1.0.19';
+import { initAccess } from './access.js?v=1.0.19';
+import './stars.js?v=1.0.19';
 
 // ----- DOM refs -----
 const flipbook          = document.getElementById('flipbook');
@@ -330,7 +330,7 @@ function initFlipbook() {
   });
 
   updateIndicator(0);
-  hideLoading();
+  // hideLoading() agora é chamado após o preload das páginas (ver final do arquivo)
 
   // Deep-link: ?page=N — abre direto numa página (ex: livrodeise.com.br?page=5)
   const deepPage = parseInt(new URLSearchParams(location.search).get('page'), 10);
@@ -405,28 +405,50 @@ document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight') flipNext();
 });
 
-// ----- Loading screen — mínimo 2.8s para garantir visibilidade -----
-const _loadStart = performance.now();
+// ----- Loading screen: baixa TODAS as páginas antes de revelar o livro -----
+// (experiência fluida: nenhuma página aparece "carregando" ao virar a folha)
+const _loadFill   = document.getElementById('loading-fill');
+const _loadStatus = document.querySelector('.loading-status');
+
+function setLoadProgress(loaded, total) {
+  const pct = Math.min(100, Math.round((loaded / total) * 100));
+  if (_loadFill) _loadFill.style.width = pct + '%';
+  if (_loadStatus) _loadStatus.textContent = loaded >= total ? 'Pronto! ✨' : `Baixando páginas… ${loaded}/${total}`;
+}
+
+// Carrega todas as imagens do livro; resolve quando terminam (ou após 20s de segurança).
+function preloadPages() {
+  const urls  = leaves.map(l => `${l.image}?v=${VERSION}`);
+  const total = urls.length;
+  let loaded = 0, settled = false;
+  setLoadProgress(0, total);
+  return new Promise(resolve => {
+    const finish = () => { if (!settled) { settled = true; resolve(); } };
+    const safety = setTimeout(finish, 20000); // nunca trava o usuário
+    const tick = () => {
+      loaded++;
+      setLoadProgress(loaded, total);
+      if (loaded >= total) { clearTimeout(safety); finish(); }
+    };
+    urls.forEach(src => {
+      const img = new Image();
+      img.onload = tick;
+      img.onerror = tick; // conta mesmo se uma falhar, pra não travar
+      img.src = src;
+    });
+  });
+}
 
 function hideLoading() {
-  const overlay  = document.getElementById('loading-overlay');
-  const fill     = document.getElementById('loading-fill');
-  const app      = document.getElementById('app');
+  const overlay = document.getElementById('loading-overlay');
+  const app     = document.getElementById('app');
   if (!overlay) return;
-  const elapsed   = performance.now() - _loadStart;
-  const remaining = Math.max(400, 2800 - elapsed);
-  // anima a barra até 100% ao longo do tempo restante
-  if (fill) {
-    requestAnimationFrame(() => {
-      fill.style.transition = `width ${remaining / 1000}s cubic-bezier(0.4, 0, 0.2, 1)`;
-      fill.style.width = '100%';
-    });
-  }
+  if (_loadFill) _loadFill.style.width = '100%';
   setTimeout(() => {
     overlay.classList.add('done');
     if (app) app.classList.add('ready');
     setTimeout(() => { if (overlay.parentNode) overlay.remove(); }, 950);
-  }, remaining + 250);
+  }, 300);
 }
 
 // ----- Responsividade (debounced) -----
@@ -436,23 +458,8 @@ window.addEventListener('resize', () => {
   resizeTimer = setTimeout(rebuildFlipbook, 250);
 });
 
-// ----- Pré-carregar todas as páginas em ocioso → ficam disponíveis offline (PWA) -----
-function prefetchAllPages() {
-  let i = 0;
-  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 300));
-  const next = () => {
-    if (i >= leaves.length) return;
-    const img = new Image();
-    img.src = `${leaves[i].image}?v=${VERSION}`;
-    i++;
-    idle(next);
-  };
-  next();
-}
-
 // ----- Inicialização -----
 initAccess();
 initFlipbook();
-
-if ('requestIdleCallback' in window) requestIdleCallback(prefetchAllPages);
-else setTimeout(prefetchAllPages, 2500);
+// Só revela o livro depois que todas as páginas foram baixadas → zero pop-in ao virar.
+preloadPages().then(hideLoading);
