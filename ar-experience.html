@@ -87,12 +87,12 @@
     <a href="ar.html" class="ar-back">← Sair</a>
     <div id="ar-detected-badge"><span class="ar-dot"></span> Livro detectado!</div>
     <div class="ar-hint" id="ar-hint-text">Aponte para a capa ou uma página</div>
-    <span style="position:fixed;bottom:4px;right:8px;color:rgba(255,255,255,0.35);font-size:0.58rem;font-family:monospace;letter-spacing:0.05em;pointer-events:none;z-index:999">v1.0.24</span>
+    <span style="position:fixed;bottom:4px;right:8px;color:rgba(255,255,255,0.35);font-size:0.58rem;font-family:monospace;letter-spacing:0.05em;pointer-events:none;z-index:999">v1.0.25</span>
   </div>
 
   <!-- ===================== Cena AR (declarativa) ===================== -->
   <a-scene
-    mindar-image="imageTargetSrc: assets/ar/targets.mind?v=5; autoStart: true; uiLoading: no; uiScanning: no; uiError: no;
+    mindar-image="imageTargetSrc: assets/ar/targets.mind?v=6; autoStart: true; uiLoading: no; uiScanning: no; uiError: no;
                   filterMinCF: 0.00008; filterBeta: 800; missTolerance: 8; warmupTolerance: 3;"
     color-space="sRGB"
     renderer="colorManagement: true"
@@ -146,16 +146,16 @@
       </a-entity>
     </a-entity>
 
-    <!-- 3 · Página 9 — Os sonhos (sonhos) -->
-    <a-entity class="ar-target" data-label="Página 9 — Os sonhos" mindar-image-target="targetIndex: 3">
+    <!-- 3 · Página 8 — Os sonhos (sonhos) -->
+    <a-entity class="ar-target" data-label="Página 8 — Os sonhos" mindar-image-target="targetIndex: 3">
       <a-entity class="gesture-wrap">
         <a-gltf-model src="#m-sonhos" position="0 -0.1 0.06" scale="0.5 0.5 0.5"
           animation="property: rotation; to: 0 360 0; dur: 9000; loop: true; easing: linear"></a-gltf-model>
       </a-entity>
     </a-entity>
 
-    <!-- 4 · Página 11 — Lugar mágico / dança (deise-bale) -->
-    <a-entity class="ar-target" data-label="Página 11 — Lugar mágico" mindar-image-target="targetIndex: 4">
+    <!-- 4 · Página 10 — Lugar mágico / dança (deise-bale) -->
+    <a-entity class="ar-target" data-label="Página 10 — Lugar mágico" mindar-image-target="targetIndex: 4">
       <a-entity class="gesture-wrap">
         <a-gltf-model src="#m-deise-bale" position="0 -0.12 0.05" scale="0.5 0.5 0.5" rotation="0 12 0"
           animation="property: rotation; from: 0 -8 0; to: 0 12 0; dur: 4000; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
@@ -170,8 +170,8 @@
       </a-entity>
     </a-entity>
 
-    <!-- 6 · Página 15 — A ARONG (arong) -->
-    <a-entity class="ar-target" data-label="Página 15 — A ARONG" mindar-image-target="targetIndex: 6">
+    <!-- 6 · Página 14 — A ARONG nasce (arong) -->
+    <a-entity class="ar-target" data-label="Página 14 — A ARONG nasce" mindar-image-target="targetIndex: 6">
       <a-entity class="gesture-wrap">
         <a-gltf-model src="#m-arong" position="0 -0.12 0.05" scale="0.5 0.5 0.5" rotation="0 -8 0"
           animation="property: rotation; from: 0 -8 0; to: 0 8 0; dur: 5000; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>

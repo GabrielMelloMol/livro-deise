@@ -1,7 +1,7 @@
 // js/access.js
 // Menu de acessibilidade: audiolivro, audiodescrição, Libras, linguagem simples e CAA.
 // Foco em uso por teclado e leitor de tela (foco preso no diálogo, Escape fecha, foco volta).
-import { ACCESS_MODES, PURCHASE_URL, BRAILLE_URL, INSTAGRAM_URL, SIMPLE_TEXT } from './config.js?v=1.0.24';
+import { ACCESS_MODES, PURCHASE_URL, BRAILLE_URL, INSTAGRAM_URL, MEDIATION_GUIDE_URL, CAA_PAGES, SIMPLE_TEXT } from './config.js?v=1.0.25';
 
 const FOCUSABLE = 'a[href], button:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])';
 let lastFocused = null;
@@ -90,6 +90,8 @@ export function initAccess() {
   if (braille) braille.href = BRAILLE_URL;
   const instagram = document.getElementById('access-instagram');
   if (instagram) instagram.href = INSTAGRAM_URL;
+  const mediation = document.getElementById('access-mediation');
+  if (mediation && MEDIATION_GUIDE_URL) { mediation.href = MEDIATION_GUIDE_URL; mediation.classList.remove('hidden'); }
 
   // ---- leitor de texto simples (conteúdo) ----
   if (simpleBody) {
@@ -139,11 +141,23 @@ export function initAccess() {
     else if (mode.url) window.open(mode.url, '_blank', 'noopener');
   }
 
-  // CAA: PDF embutido em iframe + botão externo
+  // CAA: galeria de imagens rolável (funciona bem no mobile) + botão pro PDF completo
   function openCaa(mode) {
     if (!overlayCaa) return;
     lastFocused = trigger;
-    if (caaFrame)       caaFrame.src = mode.url || '';
+    const gallery = document.getElementById('caa-gallery');
+    if (gallery && !gallery.dataset.built) {
+      CAA_PAGES.forEach((src, i) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = `Prancha de comunicação CAA — página ${i + 1} de ${CAA_PAGES.length}`;
+        img.loading = i < 2 ? 'eager' : 'lazy';
+        img.className = 'caa-page';
+        gallery.appendChild(img);
+      });
+      gallery.dataset.built = '1';
+    }
+    if (gallery) gallery.scrollTop = 0;
     if (caaExternalBtn) caaExternalBtn.href = mode.externalUrl || mode.url || '#';
     overlayCaa.classList.remove('hidden');
     document.addEventListener('keydown', onOverlayKey);

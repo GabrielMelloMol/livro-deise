@@ -37,7 +37,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Deise">
 
-  <link rel="stylesheet" href="css/style.css?v=1.0.24">
+  <link rel="stylesheet" href="css/style.css?v=1.0.25">
 </head>
 <body>
 
@@ -110,6 +110,9 @@
       </a>
       <a id="access-instagram" class="access-purchase" href="#" target="_blank" rel="noopener">
         <span aria-hidden="true">📸</span> Instagram do Projeto Deise
+      </a>
+      <a id="access-mediation" class="access-purchase hidden" href="#" target="_blank" rel="noopener">
+        <span aria-hidden="true">📘</span> Guia para mediação
       </a>
     </div>
   </div>
@@ -217,12 +220,12 @@
         <h2 id="caa-title">CAA — Pictogramas</h2>
         <button class="overlay-close" aria-label="Fechar CAA">&#10005;</button>
       </div>
-      <div class="caa-wrap">
-        <iframe id="caa-frame" src="" title="Prancha de Comunicação Aumentativa e Alternativa"></iframe>
+      <div class="caa-wrap" id="caa-gallery">
+        <!-- as páginas da prancha (imagens) são inseridas aqui pelo access.js -->
       </div>
       <div class="caa-actions">
         <a id="caa-external-btn" class="caa-btn" href="" target="_blank" rel="noopener">
-          &#8599; Abrir / Baixar PDF
+          &#8599; Abrir / Baixar o PDF completo
         </a>
       </div>
     </div>
@@ -242,7 +245,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
-  <script type="module" src="js/flipbook.js?v=1.0.24"></script>
+  <script type="module" src="js/flipbook.js?v=1.0.25"></script>
 
   <!-- PWA: registra o service worker (leitura offline) -->
   <script>

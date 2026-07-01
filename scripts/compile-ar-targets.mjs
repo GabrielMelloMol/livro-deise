@@ -15,14 +15,16 @@ const ROOT = resolve(__dirname, '..');
 
 // Imagens na ordem exata dos targetIndex em ar-experience.html.
 // 1 objeto por virada (spread), na página mais ilustrada de cada uma.
+// Alvos em páginas que NUNCA caem na mesma dupla aberta (espaçadas ≥2 páginas):
+// assim jamais aparecem dois objetos 3D juntos, independente de como o livro abre.
 const TARGET_IMAGES = [
   { path: 'assets/pages/cover.jpg',   label: 'Capa'      }, //  0 → deise-capa  (Deise + estrela)
   { path: 'assets/pages/page-04.jpg', label: 'Página 4'  }, //  1 → arong-pitch (Deise jogando bola)
   { path: 'assets/pages/page-06.jpg', label: 'Página 6'  }, //  2 → familia     (afeto/corações)
-  { path: 'assets/pages/page-09.jpg', label: 'Página 9'  }, //  3 → sonhos      (sonhar/alcançar o céu)
-  { path: 'assets/pages/page-11.jpg', label: 'Página 11' }, //  4 → deise-bale  (dança/lugar mágico)
+  { path: 'assets/pages/page-08.jpg', label: 'Página 8'  }, //  3 → sonhos      (as perguntas/sonhos)
+  { path: 'assets/pages/page-10.jpg', label: 'Página 10' }, //  4 → deise-bale  (lugar mágico: música/dança)
   { path: 'assets/pages/page-12.jpg', label: 'Página 12' }, //  5 → starlet     (a estrela do sonho)
-  { path: 'assets/pages/page-15.jpg', label: 'Página 15' }, //  6 → arong       (funda a ARONG)
+  { path: 'assets/pages/page-14.jpg', label: 'Página 14' }, //  6 → arong       (funda a ARONG)
   { path: 'assets/pages/page-18.jpg', label: 'Página 18' }, //  7 → arvore      (crianças aprendem)
   { path: 'assets/pages/page-20.jpg', label: 'Página 20' }, //  8 → fada        (Deise fada madrinha)
   { path: 'assets/pages/page-22.jpg', label: 'Página 22' }, //  9 → livros      (leitura/semente)
