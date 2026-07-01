@@ -3,7 +3,7 @@
 //   • Navegação (HTML)  → rede primeiro, cai pro cache quando offline
 //   • Assets (mesma origem + CDN) → cache primeiro, busca na rede e guarda
 //   • Externos (YouTube/Drive) → não intercepta (precisam de internet)
-const VERSION = '1.0.22';
+const VERSION = '1.0.23';
 const CACHE   = `deise-${VERSION}`;
 
 const CORE = [
