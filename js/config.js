@@ -1,7 +1,7 @@
 // js/config.js
 // CONFIG CENTRAL — edite aqui para trocar assets sem mexer no código
 
-export const VERSION  = '1.0.20';
+export const VERSION  = '1.0.21';
 export const SITE_URL = "https://livrodeise.com.br";
 
 // ---------------------------------------------------------------------------

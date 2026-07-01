@@ -91,7 +91,7 @@
 
   <!-- ===================== Cena AR (declarativa) ===================== -->
   <a-scene
-    mindar-image="imageTargetSrc: assets/ar/targets.mind; autoStart: true; uiLoading: no; uiScanning: no; uiError: no;
+    mindar-image="imageTargetSrc: assets/ar/targets.mind?v=4; autoStart: true; uiLoading: no; uiScanning: no; uiError: no;
                   filterMinCF: 0.00008; filterBeta: 800; missTolerance: 8; warmupTolerance: 3;"
     color-space="sRGB"
     renderer="colorManagement: true"
@@ -99,11 +99,17 @@
     device-orientation-permission-ui="enabled: false">
 
     <a-assets timeout="10000">
-      <a-asset-item id="m-deise-capa" src="assets/ar/deise-capa.glb?v=3"></a-asset-item>
-      <a-asset-item id="m-deise-bale" src="assets/ar/deise-bale.glb?v=3"></a-asset-item>
-      <a-asset-item id="m-sonhos"     src="assets/ar/sonhos.glb?v=3"></a-asset-item>
-      <a-asset-item id="m-arvore"     src="assets/ar/arvore.glb?v=3"></a-asset-item>
-      <a-asset-item id="m-ponte"      src="assets/ar/ponte.glb?v=3"></a-asset-item>
+      <a-asset-item id="m-deise-capa"  src="assets/ar/deise-capa.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-arong-pitch" src="assets/ar/arong-pitch.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-familia"     src="assets/ar/familia.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-sonhos"      src="assets/ar/sonhos.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-deise-bale"  src="assets/ar/deise-bale.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-starlet"     src="assets/ar/starlet.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-arong"       src="assets/ar/arong.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-arvore"      src="assets/ar/arvore.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-fada"        src="assets/ar/fada.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-livros"      src="assets/ar/livros.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-ponte"       src="assets/ar/ponte.glb?v=4"></a-asset-item>
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -111,44 +117,93 @@
     <a-light type="directional" intensity="0.8" position="1 2 1"></a-light>
 
     <!-- Cada alvo tem um .gesture-wrap: os gestos do usuário (girar/zoom) vão nele,
-         enquanto as animações idle ficam nos modelos — assim não brigam. -->
+         enquanto as animações idle ficam nos modelos — assim não brigam.
+         1 objeto por virada (spread), na página mais ilustrada de cada uma. -->
 
-    <!-- 0 · Capa — Deise sonhando -->
+    <!-- 0 · Capa — Deise sonhando (deise-capa) -->
     <a-entity class="ar-target" data-label="Capa — Deise sonhando" mindar-image-target="targetIndex: 0">
       <a-entity class="gesture-wrap">
-        <a-gltf-model src="#m-deise-capa" position="0 -0.15 0.05" scale="0.55 0.55 0.55" rotation="0 0 0"
-          animation="property: position; from: 0 -0.15 0.05; to: 0 -0.07 0.05; dur: 2400; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+        <a-gltf-model src="#m-deise-capa" position="0 -0.12 0.05" scale="0.5 0.5 0.5"
+          animation="property: position; from: 0 -0.12 0.05; to: 0 -0.05 0.05; dur: 2400; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
       </a-entity>
     </a-entity>
 
-    <!-- 1 · Página 4 — Infância de Deise -->
-    <a-entity class="ar-target" data-label="Página 4 — Infância de Deise" mindar-image-target="targetIndex: 1">
+    <!-- 1 · Página 4 — Deise jogando bola (arong-pitch) -->
+    <a-entity class="ar-target" data-label="Página 4 — Deise jogando bola" mindar-image-target="targetIndex: 1">
       <a-entity class="gesture-wrap">
-        <a-gltf-model src="#m-deise-bale" position="0 -0.15 0.05" scale="0.55 0.55 0.55" rotation="0 12 0"
+        <a-gltf-model src="#m-arong-pitch" position="0 -0.12 0.05" scale="0.5 0.5 0.5" rotation="0 12 0"
           animation="property: rotation; from: 0 -8 0; to: 0 12 0; dur: 4000; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
       </a-entity>
     </a-entity>
 
-    <!-- 2 · Página 8 — Os sonhos -->
-    <a-entity class="ar-target" data-label="Página 8 — Os sonhos" mindar-image-target="targetIndex: 2">
+    <!-- 2 · Página 6 — Afeto da família (familia) -->
+    <a-entity class="ar-target" data-label="Página 6 — Afeto da família" mindar-image-target="targetIndex: 2">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-familia" position="0 -0.12 0.05" scale="0.5 0.5 0.5"
+          animation="property: position; from: 0 -0.12 0.05; to: 0 -0.06 0.05; dur: 2800; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 3 · Página 9 — Os sonhos (sonhos) -->
+    <a-entity class="ar-target" data-label="Página 9 — Os sonhos" mindar-image-target="targetIndex: 3">
       <a-entity class="gesture-wrap">
         <a-gltf-model src="#m-sonhos" position="0 -0.1 0.06" scale="0.5 0.5 0.5"
           animation="property: rotation; to: 0 360 0; dur: 9000; loop: true; easing: linear"></a-gltf-model>
       </a-entity>
     </a-entity>
 
-    <!-- 3 · Página 10 — Sonhe grande -->
-    <a-entity class="ar-target" data-label="Página 10 — Sonhe grande" mindar-image-target="targetIndex: 3">
+    <!-- 4 · Página 11 — Lugar mágico / dança (deise-bale) -->
+    <a-entity class="ar-target" data-label="Página 11 — Lugar mágico" mindar-image-target="targetIndex: 4">
       <a-entity class="gesture-wrap">
-        <a-gltf-model src="#m-arvore" position="0 -0.15 0.05" scale="0.6 0.6 0.6"
-          animation="property: scale; from: 0.57 0.57 0.57; to: 0.62 0.62 0.62; dur: 3200; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+        <a-gltf-model src="#m-deise-bale" position="0 -0.12 0.05" scale="0.5 0.5 0.5" rotation="0 12 0"
+          animation="property: rotation; from: 0 -8 0; to: 0 12 0; dur: 4000; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
       </a-entity>
     </a-entity>
 
-    <!-- 4 · Página 14 — A ARONG nasce -->
-    <a-entity class="ar-target" data-label="Página 14 — A ARONG nasce" mindar-image-target="targetIndex: 4">
+    <!-- 5 · Página 12 — A estrela do sonho (starlet) -->
+    <a-entity class="ar-target" data-label="Página 12 — A estrela do sonho" mindar-image-target="targetIndex: 5">
       <a-entity class="gesture-wrap">
-        <a-gltf-model src="#m-ponte" position="0 -0.1 0.05" scale="0.6 0.6 0.6" rotation="0 -10 0"
+        <a-gltf-model src="#m-starlet" position="0 -0.05 0.06" scale="0.5 0.5 0.5"
+          animation="property: rotation; to: 0 360 0; dur: 8000; loop: true; easing: linear"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 6 · Página 15 — A ARONG (arong) -->
+    <a-entity class="ar-target" data-label="Página 15 — A ARONG" mindar-image-target="targetIndex: 6">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-arong" position="0 -0.12 0.05" scale="0.5 0.5 0.5" rotation="0 -8 0"
+          animation="property: rotation; from: 0 -8 0; to: 0 8 0; dur: 5000; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 7 · Página 18 — As crianças aprendem (arvore) -->
+    <a-entity class="ar-target" data-label="Página 18 — As crianças aprendem" mindar-image-target="targetIndex: 7">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-arvore" position="0 -0.12 0.05" scale="0.5 0.5 0.5"
+          animation="property: scale; from: 0.48 0.48 0.48; to: 0.52 0.52 0.52; dur: 3200; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 8 · Página 20 — Deise fada madrinha (fada) -->
+    <a-entity class="ar-target" data-label="Página 20 — Deise fada madrinha" mindar-image-target="targetIndex: 8">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-fada" position="0 -0.05 0.06" scale="0.5 0.5 0.5"
+          animation="property: position; from: 0 -0.05 0.06; to: 0 0.03 0.06; dur: 2600; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 9 · Página 22 — Leitura / semente (livros) -->
+    <a-entity class="ar-target" data-label="Página 22 — Leitura" mindar-image-target="targetIndex: 9">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-livros" position="0 -0.1 0.06" scale="0.5 0.5 0.5"
+          animation="property: rotation; to: 0 360 0; dur: 10000; loop: true; easing: linear"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 10 · Página 25 — Empatia / celebração (ponte) -->
+    <a-entity class="ar-target" data-label="Página 25 — Empatia" mindar-image-target="targetIndex: 10">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-ponte" position="0 -0.1 0.05" scale="0.55 0.55 0.55" rotation="0 -10 0"
           animation="property: rotation; from: 0 -10 0; to: 0 10 0; dur: 5000; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
       </a-entity>
     </a-entity>

@@ -23,7 +23,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const AR_DIR = resolve(__dirname, '..', 'assets/ar');
 
 const FILES = ['deise-capa', 'deise-bale', 'sonhos', 'arvore', 'ponte', 'fada',
-  'estrela', 'arong', 'arong-pitch', 'livros', 'starlet', 'familia'];
+  'arong', 'arong-pitch', 'livros', 'starlet', 'familia'];
 
 const io = new NodeIO()
   .registerExtensions([EXTMeshoptCompression, KHRMeshQuantization, EXTTextureWebP])

@@ -13,13 +13,20 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 
-// Imagens na ordem exata dos targetIndex em ar-experience.html
+// Imagens na ordem exata dos targetIndex em ar-experience.html.
+// 1 objeto por virada (spread), na página mais ilustrada de cada uma.
 const TARGET_IMAGES = [
-  { path: 'assets/pages/cover.jpg',   label: 'Capa'      }, // 0 → deise-capa.glb + fada.glb
-  { path: 'assets/pages/page-04.jpg', label: 'Página 4'  }, // 1 → deise-bale.glb
-  { path: 'assets/pages/page-08.jpg', label: 'Página 8'  }, // 2 → sonhos.glb + fada.glb
-  { path: 'assets/pages/page-10.jpg', label: 'Página 10' }, // 3 → arvore.glb
-  { path: 'assets/pages/page-14.jpg', label: 'Página 14' }, // 4 → ponte.glb + fada.glb
+  { path: 'assets/pages/cover.jpg',   label: 'Capa'      }, //  0 → deise-capa  (Deise + estrela)
+  { path: 'assets/pages/page-04.jpg', label: 'Página 4'  }, //  1 → arong-pitch (Deise jogando bola)
+  { path: 'assets/pages/page-06.jpg', label: 'Página 6'  }, //  2 → familia     (afeto/corações)
+  { path: 'assets/pages/page-09.jpg', label: 'Página 9'  }, //  3 → sonhos      (sonhar/alcançar o céu)
+  { path: 'assets/pages/page-11.jpg', label: 'Página 11' }, //  4 → deise-bale  (dança/lugar mágico)
+  { path: 'assets/pages/page-12.jpg', label: 'Página 12' }, //  5 → starlet     (a estrela do sonho)
+  { path: 'assets/pages/page-15.jpg', label: 'Página 15' }, //  6 → arong       (funda a ARONG)
+  { path: 'assets/pages/page-18.jpg', label: 'Página 18' }, //  7 → arvore      (crianças aprendem)
+  { path: 'assets/pages/page-20.jpg', label: 'Página 20' }, //  8 → fada        (Deise fada madrinha)
+  { path: 'assets/pages/page-22.jpg', label: 'Página 22' }, //  9 → livros      (leitura/semente)
+  { path: 'assets/pages/page-25.jpg', label: 'Página 25' }, // 10 → ponte       (empatia/celebração)
 ];
 
 const OUTPUT = resolve(ROOT, 'assets/ar/targets.mind');
@@ -35,15 +42,49 @@ async function compile() {
     process.exit(1);
   }
 
-  // Importa o compilador MindAR (ignora a dependência de canvas)
+  // Compilador MindAR para Node — SEM `canvas` nativo (não compila no Node 25).
+  // O `compiler.js` oficial usa Web Worker (import Vite `?worker&inline`, não roda
+  // em Node) e o `offline-compiler.js` usa `canvas`. Aqui estendemos o CompilerBase:
+  //   - createProcessCanvas: stub que devolve os pixels RGBA que o jimp já leu
+  //     (o canvas só servia pra rasterizar a imagem em ImageData — nós já temos)
+  //   - compileTrack: versão JS-pura idêntica à do offline-compiler
   let Compiler;
   try {
-    const mod = await import('mind-ar/src/image-target/compiler.js');
-    Compiler = mod.Compiler || mod.default?.Compiler;
-    if (!Compiler) throw new Error('classe Compiler não encontrada');
+    const { CompilerBase } = await import('mind-ar/src/image-target/compiler-base.js');
+    const { buildTrackingImageList } = await import('mind-ar/src/image-target/image-list.js');
+    const { extractTrackingFeatures } = await import('mind-ar/src/image-target/tracker/extract-utils.js');
+    await import('mind-ar/src/image-target/detector/kernels/cpu/index.js'); // registra kernels tfjs CPU
+
+    Compiler = class NodeCompiler extends CompilerBase {
+      createProcessCanvas(img) {
+        // img = { data: RGBA Uint8ClampedArray, width, height } — devolvemos direto
+        return {
+          getContext: () => ({
+            drawImage: () => {},
+            getImageData: () => ({ data: img.data, width: img.width, height: img.height }),
+          }),
+        };
+      }
+      compileTrack({ progressCallback, targetImages, basePercent }) {
+        return new Promise((resolve) => {
+          const percentPerImage = (100 - basePercent) / targetImages.length;
+          let percent = 0;
+          const list = [];
+          for (let i = 0; i < targetImages.length; i++) {
+            const imageList = buildTrackingImageList(targetImages[i]);
+            const percentPerAction = percentPerImage / imageList.length;
+            const trackingData = extractTrackingFeatures(imageList, () => {
+              percent += percentPerAction;
+              progressCallback(basePercent + percent);
+            });
+            list.push(trackingData);
+          }
+          resolve(list);
+        });
+      }
+    };
   } catch (err) {
-    console.error('\n❌  Erro ao importar compilador MindAR:', err.message);
-    console.error('   Rode: npm install mind-ar --ignore-scripts\n');
+    console.error('\n❌  Erro ao montar compilador MindAR:', err.message, '\n', err.stack);
     process.exit(1);
   }
 

@@ -33,11 +33,10 @@ const MODELS = [
   { src: 'arvore.glb',      out: 'arvore.glb'      }, // árvore da inclusão
   { src: 'ponte.glb',       out: 'ponte.glb'       }, // ponte da empatia
   { src: 'fada.glb',        out: 'fada.glb'        }, // Deise fada
-  { src: 'estrela.glb',     out: 'estrela.glb'     }, // estrela
   { src: 'arong.glb',       out: 'arong.glb'       }, // prédio/casa da ARONG
-  { src: 'arong-pitch.glb', out: 'arong-pitch.glb' }, // ARONG "on the pitch"
+  { src: 'arong-pitch.glb', out: 'arong-pitch.glb' }, // Deise jogando bola
   { src: 'livros.glb',      out: 'livros.glb'      }, // livros (Books in Bloom)
-  { src: 'starlet.glb',     out: 'starlet.glb'     }, // Golden Starlet
+  { src: 'starlet.glb',     out: 'starlet.glb'     }, // estrela nova (Golden Starlet)
   { src: 'familia.glb',     out: 'familia.glb'     }, // família + coração (Rainbow Family Heart)
 ];
 
