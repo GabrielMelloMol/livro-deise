@@ -339,7 +339,11 @@ body {
 .page {
   position: relative;
   overflow: hidden;
-  background: transparent;
+  /* fundo opaco (não transparente): evita "piscar" o fundo escuro atrás durante
+     a virada no Android. NÃO pôr transform aqui — o StPageFlip controla o da página. */
+  background: #fffdf7;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 .page img {
   width: 100%;
@@ -348,6 +352,9 @@ body {
   display: block;
   image-rendering: high-quality;
   image-rendering: -webkit-optimize-contrast;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
 }
 
 /* ---- Versão ---- */

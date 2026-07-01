@@ -1,7 +1,7 @@
 // js/flipbook.js
-import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, PAGE_ALT, VERSION } from './config.js?v=1.0.25';
-import { initAccess } from './access.js?v=1.0.25';
-import './stars.js?v=1.0.25';
+import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, PAGE_ALT, VERSION } from './config.js?v=1.0.26';
+import { initAccess } from './access.js?v=1.0.26';
+import './stars.js?v=1.0.26';
 
 // ----- DOM refs -----
 const flipbook          = document.getElementById('flipbook');
@@ -259,7 +259,13 @@ flipbookContainer.addEventListener('touchend', e => {
 function getBookSize() {
   const portrait = window.innerWidth < 700;
   if (portrait) {
-    const maxH = window.innerHeight - 54;
+    // Reserva a altura REAL do cabeçalho + barra de botões (antes era fixo 54px,
+    // que no Android deixava os botões saindo da tela).
+    const header   = document.getElementById('book-title');
+    const controls = document.getElementById('controls');
+    const chrome = (header ? header.offsetHeight : 54)
+                 + (controls ? controls.offsetHeight : 56) + 6;
+    const maxH = Math.max(240, window.innerHeight - chrome);
     const maxW = window.innerWidth;
     return { width: maxW * RENDER_SCALE * 2, height: maxH * RENDER_SCALE };
   }

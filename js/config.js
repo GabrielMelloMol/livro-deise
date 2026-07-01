@@ -1,7 +1,7 @@
 // js/config.js
 // CONFIG CENTRAL — edite aqui para trocar assets sem mexer no código
 
-export const VERSION  = '1.0.25';
+export const VERSION  = '1.0.26';
 export const SITE_URL = "https://livrodeise.com.br";
 
 // ---------------------------------------------------------------------------
@@ -54,8 +54,8 @@ export const ACCESS_MODES = [
 export const PURCHASE_URL  = "https://editorasaberonline.com.br/produto/deise-em-tudo-aqui-ja-foi-um-sonho/";
 export const BRAILLE_URL   = "https://editorasaberonline.com.br/produto/deise-em-tudo-aqui-ja-foi-um-sonho-edicao-em-braille/";
 export const INSTAGRAM_URL = "https://www.instagram.com/projetodeise.inclusao";
-// TODO: colar o link do Drive do "Guia para mediação" que o Gabriel adicionou.
-export const MEDIATION_GUIDE_URL = "";
+// Guia para a Mediação Pedagógica Inclusiva (PDF hospedado no próprio site).
+export const MEDIATION_GUIDE_URL = "assets/guia/guia-mediacao-inclusiva.pdf";
 
 // Páginas da prancha CAA como imagens (melhor no mobile que o PDF embutido).
 export const CAA_PAGES = Array.from({ length: 17 }, (_, i) =>
