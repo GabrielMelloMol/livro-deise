@@ -3,7 +3,7 @@
 //   • Navegação (HTML)  → rede primeiro, cai pro cache quando offline
 //   • Assets (mesma origem + CDN) → cache primeiro, busca na rede e guarda
 //   • Externos (YouTube/Drive) → não intercepta (precisam de internet)
-const VERSION = '1.0.21';
+const VERSION = '1.0.22';
 const CACHE   = `deise-${VERSION}`;
 
 const CORE = [
@@ -35,7 +35,9 @@ const CORE = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE)
-      .then(c => Promise.allSettled(CORE.map(u => c.add(u))))  // não falha o install se um item faltar
+      // {cache: 'reload'} força buscar da REDE (ignora o cache HTTP do GitHub Pages),
+      // senão o install poderia guardar uma cópia velha do HTML/asset.
+      .then(c => Promise.allSettled(CORE.map(u => c.add(new Request(u, { cache: 'reload' })))))
       .then(() => self.skipWaiting())
   );
 });
@@ -53,10 +55,10 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
 
-  // HTML / navegação: rede primeiro
+  // HTML / navegação: rede primeiro, SEMPRE fresco (ignora cache HTTP → sem versão presa)
   if (req.mode === 'navigate') {
     e.respondWith(
-      fetch(req)
+      fetch(req.url, { cache: 'reload' })
         .then(res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); return res; })
         .catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
     );

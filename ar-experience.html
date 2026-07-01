@@ -358,5 +358,18 @@
       }
     }, 18000);
   </script>
+
+  <!-- PWA: garante que o AR pega a versão nova (auto-reload quando sai update) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      if (navigator.serviceWorker.controller) {
+        let reloaded = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (reloaded) return; reloaded = true; location.reload();
+        });
+      }
+      navigator.serviceWorker.register('sw.js').then(reg => reg.update()).catch(() => {});
+    }
+  </script>
 </body>
 </html>
