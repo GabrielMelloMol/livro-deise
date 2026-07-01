@@ -1,7 +1,7 @@
 // js/flipbook.js
-import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, VERSION } from './config.js?v=1.0.23';
-import { initAccess } from './access.js?v=1.0.23';
-import './stars.js?v=1.0.23';
+import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, PAGE_ALT, VERSION } from './config.js?v=1.0.24';
+import { initAccess } from './access.js?v=1.0.24';
+import './stars.js?v=1.0.24';
 
 // ----- DOM refs -----
 const flipbook          = document.getElementById('flipbook');
@@ -25,7 +25,9 @@ const leaves = [
   ...PAGES.map(p => ({
     image: p.image,
     label: String(p.id),
-    alt: PAGE_TEXTS[p.id] ? `Página ${p.id}. ${PAGE_TEXTS[p.id]}` : `Página ${p.id} do livro. Ilustração.`,
+    alt: PAGE_TEXTS[p.id] ? `Página ${p.id}. ${PAGE_TEXTS[p.id]}`
+       : PAGE_ALT[p.id]   ? `Página ${p.id}. ${PAGE_ALT[p.id]}`
+       : `Página ${p.id} do livro. Ilustração.`,
   })),
   { image: BACK_COVER.image, label: BACK_COVER.label, alt: BACK_COVER.alt },
 ];

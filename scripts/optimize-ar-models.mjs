@@ -38,6 +38,7 @@ const MODELS = [
   { src: 'livros.glb',      out: 'livros.glb'      }, // livros (Books in Bloom)
   { src: 'starlet.glb',     out: 'starlet.glb'     }, // estrela nova (Golden Starlet)
   { src: 'familia.glb',     out: 'familia.glb'     }, // família + coração (Rainbow Family Heart)
+  { src: 'saxofone.glb',    out: 'saxofone.glb'    }, // Deise com saxofone (Saxophone Serenade)
 ];
 
 const TEXTURE_SIZE = 1024;

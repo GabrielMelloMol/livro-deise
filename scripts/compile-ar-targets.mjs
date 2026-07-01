@@ -27,6 +27,7 @@ const TARGET_IMAGES = [
   { path: 'assets/pages/page-20.jpg', label: 'Página 20' }, //  8 → fada        (Deise fada madrinha)
   { path: 'assets/pages/page-22.jpg', label: 'Página 22' }, //  9 → livros      (leitura/semente)
   { path: 'assets/pages/page-25.jpg', label: 'Página 25' }, // 10 → ponte       (empatia/celebração)
+  { path: 'assets/pages/page-16.jpg', label: 'Página 16' }, // 11 → saxofone    (música na ARONG)
 ];
 
 const OUTPUT = resolve(ROOT, 'assets/ar/targets.mind');

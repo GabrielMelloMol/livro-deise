@@ -1,7 +1,7 @@
 // js/access.js
 // Menu de acessibilidade: audiolivro, audiodescrição, Libras, linguagem simples e CAA.
 // Foco em uso por teclado e leitor de tela (foco preso no diálogo, Escape fecha, foco volta).
-import { ACCESS_MODES, PURCHASE_URL, SIMPLE_TEXT } from './config.js?v=1.0.23';
+import { ACCESS_MODES, PURCHASE_URL, BRAILLE_URL, INSTAGRAM_URL, SIMPLE_TEXT } from './config.js?v=1.0.24';
 
 const FOCUSABLE = 'a[href], button:not([disabled]), iframe, [tabindex]:not([tabindex="-1"])';
 let lastFocused = null;
@@ -86,6 +86,10 @@ export function initAccess() {
     list.appendChild(li);
   });
   if (purchase) purchase.href = PURCHASE_URL;
+  const braille = document.getElementById('access-braille');
+  if (braille) braille.href = BRAILLE_URL;
+  const instagram = document.getElementById('access-instagram');
+  if (instagram) instagram.href = INSTAGRAM_URL;
 
   // ---- leitor de texto simples (conteúdo) ----
   if (simpleBody) {

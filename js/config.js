@@ -1,7 +1,7 @@
 // js/config.js
 // CONFIG CENTRAL — edite aqui para trocar assets sem mexer no código
 
-export const VERSION  = '1.0.23';
+export const VERSION  = '1.0.24';
 export const SITE_URL = "https://livrodeise.com.br";
 
 // ---------------------------------------------------------------------------
@@ -51,7 +51,9 @@ export const ACCESS_MODES = [
     qrCode: "assets/qrcodes/qr-modo-caa.png" },
 ];
 
-export const PURCHASE_URL = "https://editorasaberonline.com.br/produto/deise-em-tudo-aqui-ja-foi-um-sonho/";
+export const PURCHASE_URL  = "https://editorasaberonline.com.br/produto/deise-em-tudo-aqui-ja-foi-um-sonho/";
+export const BRAILLE_URL   = "https://editorasaberonline.com.br/produto/deise-em-tudo-aqui-ja-foi-um-sonho-edicao-em-braille/";
+export const INSTAGRAM_URL = "https://www.instagram.com/projetodeise.inclusao";
 
 // Vídeo animado (AR no web) — PLACEHOLDER por enquanto; trocar pelos vídeos finais.
 export const AR_VIDEO = {
@@ -105,6 +107,44 @@ export const PAGE_TEXTS = {
   8:  "E dentro do coração daquela garotinha morava uma pergunta: por que os adultos esquecem dos seus sonhos? Ei, sonho, aonde vai com tanta pressa? E você, vai ficar aí parada? Vai deixar seu sonho morrer também? Mas por onde eu começo? E se?",
   10: "Deise imaginava um lugar mágico, repleto de livros, música, dança e, acima de tudo, esperança. Algumas pessoas diziam: isso é grande demais para você!",
   11: "Mas Deise guardava seu sonho com a coragem e a ousadia que só quem acredita de verdade possui.",
+  13: "O tempo passou, Deise cresceu, trabalhou muito, ajudou sua família e aprendeu muitas coisas. Mesmo cansada, nunca deixou seu sonho adormecer. Ela entendeu que cada desafio era um aprendizado e que cada passo difícil a tornava mais forte.",
+  14: "A grande virada aconteceu quando ela decidiu que não bastava apenas imaginar; era preciso construir! Com uma determinação inabalável, ela fundou um espaço mágico, cheio de acolhimento e cuidado… a ARONG! O que era apenas um desejo se tornou um porto seguro para sua comunidade inteira.",
+  17: "Hoje, quando você entra na ARONG, percebe que tudo ali já foi um sonho. Onde antes havia silêncio, agora existe o som do saxofone e do teclado. Onde havia desânimo, agora há o brilho nos olhos de crianças que descobrem que sua cultura e o som da periferia podem ecoar no mundo.",
+  18: "Ali crianças aprenderam a ler, dançar, lutar, cantar e acreditar em si mesmas.",
+  19: "Deise foi se tornando uma espécie de fada madrinha, abrindo caminhos onde existia uma menina tímida que achava que a beleza e a arte não eram para ela.",
+  21: "Onde tinha um menino que ninguém ouvia a voz. Plim!! Vinha nossa fada madrinha para mostrar que a violência também se combate com arte. A voz do menino se tornou potência e ecoou como um acorde de esperança, inspirando outros jovens da comunidade.",
+  23: "E não para por aí! A Deise idealizou um lugar cheinho de livros: porque cada livro é a semente de um novo sonho. Como esse que você está lendo agora: ele foi escrito para te lembrar de nunca desistir dos seus! Um sonho que nasce para fazer o bem tem o poder de florescer e se tornar a esperança de todo um coletivo.",
+  24: "Os anos se passaram… E o amor continua alcançando vidas até hoje. Você pode ir à ARONG conferir, se quiser! Você vai ver que sonhos podem virar realidade e que fadas madrinhas podem existir de verdade!",
+  26: "E só de pensar que tudo começou com uma menina que decidiu não desistir… A história da Deise foi escrita para te lembrar que tudo é possível e que é preciso acreditar e persistir! Que um dia você também possa olhar para trás e dizer que tudo o que você construiu também já foi um sonho…",
+};
+
+// ---------------------------------------------------------------------------
+// DESCRIÇÃO DAS ILUSTRAÇÕES (alt-text) — para páginas sem texto narrado e para
+// as páginas de rosto/créditos. Usado pelo leitor de tela quando não há PAGE_TEXTS.
+// ---------------------------------------------------------------------------
+export const PAGE_ALT = {
+  1:  "Página de rosto: o título “Deise em… Tudo aqui já foi um sonho!” e o selo Livro Inclusivo, com áudio, Libras e Braille.",
+  2:  "Página de créditos e ficha catalográfica da Editora Saber Online.",
+  3:  "Página de patrocinadores e apoio, com QR codes para acessar os recursos da obra.",
+  9:  "Ilustração: Deise, ainda menina, em pé num campo florido com o braço erguido para o céu. Ao redor flutuam seus sonhos — um barquinho, a lua, balões e um gramofone.",
+  12: "Ilustração: Deise, já jovem, numa cozinha simples, segurando com carinho uma pequena estrela dourada que brilha em suas mãos — o sonho que ela guardou.",
+  15: "Ilustração: Deise adulta, orgulhosa, em frente à ARONG — uma casinha colorida com o letreiro “ARONG”, cercada de flores.",
+  16: "Ilustração: na ARONG, um senhor toca saxofone e crianças tocam teclado e cantam ao lado de Deise. Notas musicais flutuam no ar.",
+  20: "Ilustração: Deise transformada em fada madrinha, com asas e varinha, sob um arco-íris. Uma pomba branca voa e um menino observa, encantado.",
+  22: "Ilustração: Deise sentada lendo um livro, ao lado de uma casa na árvore da ARONG, com crianças brincando entre as flores.",
+  25: "Ilustração: festa na ARONG — Deise com um vestido de fada, cercada de crianças, balões e alegria, celebrando a comunidade.",
+  27: "Ilustração: Deise adulta, de costas, olhando com esperança para a sua comunidade colorida ao longe, entre flores.",
+  28: "Página sobre a ARONG Aliança Resgate ONG, com foto de Deise Xavier dos Santos Teixeira, presidente e inspiração da história.",
+  29: "Foto de um evento real da ARONG, com crianças reunidas na comunidade.",
+  30: "Atividade para a criança: “Qual é o seu sonho?” — espaço para escrever e desenhar um sonho.",
+  31: "Página sobre o material de apoio para o uso dos recursos de inclusão, com QR code de acesso.",
+  32: "Mini biografias da equipe: Tatiana Nóbrega e Sheila Arantes.",
+  33: "Mini biografias da equipe: Gabriel Mol e Viviane dos Santos.",
+  34: "Mini biografias da equipe: Luciana Dantas e Elizabeth de Jesus.",
+  35: "Mini biografias da equipe: Doriane Vasconcelos e Joselaine Sousa.",
+  36: "Mini biografias da equipe: Vânia Ferreira e Clemilton Lopes.",
+  37: "Mini biografias da equipe: Fábio Coelho e Vanessa Duarte.",
+  38: "Página final: esta obra é fruto do trabalho da disciplina de Empreendedorismo e Liderança do Programa de Pós-Graduação da UniCarioca. Uma obra construída coletivamente, por muitas mãos e corações.",
 };
 
 // ---------------------------------------------------------------------------

@@ -379,7 +379,16 @@ html.is-fullscreen #app {
     height: 100dvh;
   }
   #book-title h1  { display: none; }   /* esconde só o título; mantém o botão de acessibilidade */
-  #book-title     { justify-content: flex-end; padding: 6px 10px 0; }
+  #book-title     { justify-content: center; padding: 8px 10px 2px; }
+  /* Botão de acessibilidade em DESTAQUE no mobile (maior + brilho pulsante) */
+  .btn-access {
+    font-size: 0.98rem;
+    font-weight: 700;
+    padding: 12px 22px;
+    background: #0091d6;
+    box-shadow: 0 2px 14px rgba(0,145,214,0.5), 0 0 0 0 rgba(0,145,214,0.55);
+    animation: a11yPulse 2.4s ease-out infinite;
+  }
   #zoom-controls  { display: none; }
   #extra-controls { display: none; }
 
@@ -445,6 +454,12 @@ html.is-fullscreen #app {
 }
 .btn-access:hover { background: #0096d6; }
 .btn-access:active { transform: scale(0.97); }
+/* pulso que chama atenção pro botão de acessibilidade (usado no mobile) */
+@keyframes a11yPulse {
+  0%   { box-shadow: 0 2px 14px rgba(0,145,214,0.5), 0 0 0 0 rgba(0,145,214,0.5); }
+  70%  { box-shadow: 0 2px 14px rgba(0,145,214,0.5), 0 0 0 12px rgba(0,145,214,0); }
+  100% { box-shadow: 0 2px 14px rgba(0,145,214,0.5), 0 0 0 0 rgba(0,145,214,0); }
+}
 
 .access-panel {
   position: fixed; inset: 0;

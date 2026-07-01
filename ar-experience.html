@@ -87,12 +87,12 @@
     <a href="ar.html" class="ar-back">← Sair</a>
     <div id="ar-detected-badge"><span class="ar-dot"></span> Livro detectado!</div>
     <div class="ar-hint" id="ar-hint-text">Aponte para a capa ou uma página</div>
-    <span style="position:fixed;bottom:4px;right:8px;color:rgba(255,255,255,0.35);font-size:0.58rem;font-family:monospace;letter-spacing:0.05em;pointer-events:none;z-index:999">v1.0.23</span>
+    <span style="position:fixed;bottom:4px;right:8px;color:rgba(255,255,255,0.35);font-size:0.58rem;font-family:monospace;letter-spacing:0.05em;pointer-events:none;z-index:999">v1.0.24</span>
   </div>
 
   <!-- ===================== Cena AR (declarativa) ===================== -->
   <a-scene
-    mindar-image="imageTargetSrc: assets/ar/targets.mind?v=4; autoStart: true; uiLoading: no; uiScanning: no; uiError: no;
+    mindar-image="imageTargetSrc: assets/ar/targets.mind?v=5; autoStart: true; uiLoading: no; uiScanning: no; uiError: no;
                   filterMinCF: 0.00008; filterBeta: 800; missTolerance: 8; warmupTolerance: 3;"
     color-space="sRGB"
     renderer="colorManagement: true"
@@ -111,6 +111,7 @@
       <a-asset-item id="m-fada"        src="assets/ar/fada.glb?v=4"></a-asset-item>
       <a-asset-item id="m-livros"      src="assets/ar/livros.glb?v=4"></a-asset-item>
       <a-asset-item id="m-ponte"       src="assets/ar/ponte.glb?v=4"></a-asset-item>
+      <a-asset-item id="m-saxofone"    src="assets/ar/saxofone.glb?v=5"></a-asset-item>
     </a-assets>
 
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
@@ -206,6 +207,14 @@
       <a-entity class="gesture-wrap">
         <a-gltf-model src="#m-ponte" position="0 -0.1 0.05" scale="0.55 0.55 0.55" rotation="0 -10 0"
           animation="property: rotation; from: 0 -10 0; to: 0 10 0; dur: 5000; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
+      </a-entity>
+    </a-entity>
+
+    <!-- 11 · Página 16 — Música na ARONG (saxofone) -->
+    <a-entity class="ar-target" data-label="Página 16 — Música na ARONG" mindar-image-target="targetIndex: 11">
+      <a-entity class="gesture-wrap">
+        <a-gltf-model src="#m-saxofone" position="0 -0.12 0.05" scale="0.5 0.5 0.5" rotation="0 10 0"
+          animation="property: rotation; from: 0 -8 0; to: 0 10 0; dur: 4200; dir: alternate; loop: true; easing: easeInOutSine"></a-gltf-model>
       </a-entity>
     </a-entity>
 
