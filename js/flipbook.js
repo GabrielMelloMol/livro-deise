@@ -1,7 +1,7 @@
 // js/flipbook.js
-import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, PAGE_ALT, VERSION } from './config.js?v=1.0.26';
-import { initAccess } from './access.js?v=1.0.26';
-import './stars.js?v=1.0.26';
+import { COVER, PAGES, BACK_COVER, PAGE_TEXTS, PAGE_ALT, VERSION } from './config.js?v=1.0.27';
+import { initAccess } from './access.js?v=1.0.27';
+import './stars.js?v=1.0.27';
 
 // ----- DOM refs -----
 const flipbook          = document.getElementById('flipbook');

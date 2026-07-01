@@ -1,7 +1,7 @@
 // js/config.js
 // CONFIG CENTRAL — edite aqui para trocar assets sem mexer no código
 
-export const VERSION  = '1.0.26';
+export const VERSION  = '1.0.27';
 export const SITE_URL = "https://livrodeise.com.br";
 
 // ---------------------------------------------------------------------------
@@ -131,7 +131,7 @@ export const PAGE_TEXTS = {
 export const PAGE_ALT = {
   1:  "Página de rosto: o título “Deise em… Tudo aqui já foi um sonho!” e o selo Livro Inclusivo, com áudio, Libras e Braille.",
   2:  "Página de créditos e ficha catalográfica da Editora Saber Online.",
-  3:  "Página de patrocinadores e apoio, com QR codes para acessar os recursos da obra.",
+  3:  "Página com QR codes para acessar os recursos acessíveis da obra (Libras, audiolivro, audiolivro com audiodescrição, linguagem simples e Comunicação Alternativa e Aumentativa) e o apoio da UniCarioca.",
   9:  "Ilustração: Deise, ainda menina, em pé num campo florido com o braço erguido para o céu. Ao redor flutuam seus sonhos — um barquinho, a lua, balões e um gramofone.",
   12: "Ilustração: Deise, já jovem, numa cozinha simples, segurando com carinho uma pequena estrela dourada que brilha em suas mãos — o sonho que ela guardou.",
   15: "Ilustração: Deise adulta, orgulhosa, em frente à ARONG — uma casinha colorida com o letreiro “ARONG”, cercada de flores.",
