@@ -2,7 +2,7 @@
 // Cena 1: CAPA — O Livro Desperta
 // Efeitos: partículas douradas + brilho pulsante + som ambiente
 
-const THREE = window.THREE; // carregado via script tag em ar/index.html
+const THREE = window.THREE; // exposto globalmente pelo <script> do A-Frame em ar-experience.html
 
 export async function init(anchor, scene) {
   // Container DOM para partículas (overlay CSS sobre a câmera)
