@@ -1,4 +1,5 @@
-# Assets pesados — não commitar
+# Assets pesados — regra legada (pasta assets/libras/ vazia; vídeo real é assets/video/*.mp4,
+# que PRECISA ser commitado pro GitHub Pages servir — não há LFS aqui)
 assets/libras/*.mp4
 assets/libras/*.MP4
 # assets/pages — imagens commitadas para GitHub Pages servir
